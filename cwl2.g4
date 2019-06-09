@@ -18,7 +18,7 @@ filedecl : FILE jsexpr ;
 
 dirdecl : DIRECTORY jsexpr ;
 
-assignment : symbol ws* EQ ws* (subst|filedecl|dirdecl|STDOUT) ws*? NEWLINE ;
+assignment : symbol typedecl?  ws* EQ ws* (subst|filedecl|dirdecl|STDOUT) ws*? NEWLINE ;
 
 workflowdecl : WORKFLOW ws+ name ws* input_params ws* output_params ws* OPENBRACE workflowbody CLOSEBRACE ;
 
@@ -26,13 +26,13 @@ tooldecl : TOOL ws+ name ws* input_params ws* output_params ws* OPENBRACE toolbo
 
 workflowbody : (assignment | ws | step)* ;
 
-step : symbol ws* EQ ws* (toolstep | call) ws*? foreach? NEWLINE ;
+step : (symbol | stepinputs) ws* EQ ws* (toolstep | call) ws*? foreach? NEWLINE ;
 
 foreach : FOR ws+ EACH ws+ stepinputs ws+ IN ws+ stepinputs ;
 
 toolstep : TOOL ws* stepinputs ws* output_params ws* OPENBRACE ws* toolbody ws* CLOSEBRACE ;
 
-call : symbol stepinputs ;
+call : symbol ws* stepinputs ;
 
 stepinput : name | SQSTRING | DQSTRING | name EQ (name | SQSTRING | DQSTRING) ;
 
