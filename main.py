@@ -27,21 +27,34 @@ class MyCL(cwl2Listener):
 
     # Enter a parse tree produced by cwl2Parser#workflowdecl.
     def enterWorkflowdecl(self, ctx:cwl2Parser.WorkflowdeclContext):
-        print("workflow '%s' '%s' '%s'" % (ctx.name().getText(), ctx.input_params().getText(), ctx.output_params().getText()))
+        pass
+        #print("workflow '%s' '%s' '%s'" % (ctx.name().getText(), ctx.input_params().getText(), ctx.output_params().getText()))
 
     # Enter a parse tree produced by cwl2Parser#toolbody.
     def enterToolbody(self, ctx:cwl2Parser.ToolbodyContext):
+        if ctx.attribute():
+            print("toolbody attributes '%s'" % ([i.getText() for i in ctx.attribute()]))
         if ctx.input_assignment():
-            print("toolbody input '%s'" % (ctx.input_assignment().getText()))
+            print("toolbody input '%s'" % ([i.getText() for i in ctx.input_assignment()]))
         if ctx.command():
             print("toolbody command '%s'" % ([t.getText() for t in ctx.command().argument()]))
         if ctx.script():
-            print("toolbody script '%s' '%s'" % ([t.getText() for t in ctx.script().argument()], ctx.script().scriptbody().getText()))
+            print("toolbody script '%s' '%s'" % ([t.getText() for t in ctx.script().argument()], ctx.script().scriptbody().getText()[4:-4]))
         if ctx.output_assignment():
             print("toolbody output '%s'" % ([t.getText() for t in ctx.output_assignment()]))
 
     def enterCall(self, ctx:cwl2Parser.CallContext):
         print("call '%s' '%s'" % (ctx.symbol().getText(), ctx.stepinputs().getText()))
+
+    def enterAttribute(self, ctx:cwl2Parser.AttributeContext):
+        if ctx.symbol():
+            print("attribute '%s' '%s'" % (ctx.name().getText(), ctx.symbol().getText()))
+        if ctx.FLOAT():
+            print("attribute '%s' '%s'" % (ctx.name().getText(), ctx.FLOAT().getText()))
+        if ctx.INTEGER():
+            print("attribute '%s' '%s'" % (ctx.name().getText(), ctx.INTEGER().getText()))
+        if ctx.attribute():
+            print("attribute '%s' '%s'" % (ctx.name().getText(), [t.getText() for t in ctx.attribute()]))
 
 
 def main(argv):

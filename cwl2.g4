@@ -2,9 +2,11 @@ grammar cwl2;
 
 root : (workflowdecl | tooldecl | ws)+ ;
 
-javascript : (jsstring | jsexpr | jsblock | jslist | ws | DOLLAR | COLON | COMMA | EQ | NOTWS )*?;
+javascript : (jsstring | jsexpr | jsblock | jslist | ws | DOLLAR | COLON
+	   | COMMA | EQ | COMMENT | FLOAT | INTEGER
+	   | FILE | DIRECTORY | STDOUT | FOR | EACH | IN | NOTWS )*?;
 
-jsstring : SQSTRING | DQSTRING ;
+jsstring : SQSTRING | DQSTRING | BQSTRING ;
 
 jsexpr : OPENPAREN javascript CLOSEPAREN ;
 
@@ -18,7 +20,7 @@ filedecl : FILE jsexpr ;
 
 dirdecl : DIRECTORY jsexpr ;
 
-assignment : symbol typedecl?  ws* EQ ws* (subst|filedecl|dirdecl|STDOUT) ws*? NEWLINE ;
+assignment : symbol ws+ typedecl? ws* EQ ws* (subst|filedecl|dirdecl|STDOUT) ws*? NEWLINE ;
 
 workflowdecl : WORKFLOW ws+ name ws* input_params ws* output_params ws* OPENBRACE workflowbody CLOSEBRACE ;
 
@@ -36,13 +38,13 @@ call : symbol ws* stepinputs ;
 
 stepinput : name | SQSTRING | DQSTRING | name EQ (name | SQSTRING | DQSTRING) ;
 
-stepinputs : OPENPAREN (stepinput (COMMA stepinput)*)? CLOSEPAREN ;
+stepinputs : OPENPAREN (stepinput ws* (ws* COMMA ws* stepinput)* ws*)? CLOSEPAREN ;
 
 command : SPACE* argument (SPACE+ argument)* SPACE* NEWLINE ;
 
 freetext : DOLLAR | OPENPAREN | CLOSEPAREN | OPENBRACE | CLOSEBRACE | OPENBRACKET | CLOSEBRACKET
-            | COLON | COMMA | EQ | HASHBANG | OPENSCRIPT | SQSTRING | DQSTRING
-	    | WORKFLOW | TOOL | FILE | DIRECTORY | STDOUT | FOR | EACH | IN | NOTWS ;
+            | COLON | COMMA | EQ | HASHBANG | COMMENT | OPENSCRIPT | SQSTRING | DQSTRING | DQSTRING
+	    | FLOAT | INTEGER | WORKFLOW | TOOL | FILE | DIRECTORY | STDOUT | FOR | EACH | IN | NOTWS ;
 
 line : (freetext | SPACE)* NEWLINE ;
 
@@ -55,7 +57,7 @@ argument : (freetext)+;
 input_assignment : assignment ;
 output_assignment : assignment ;
 
-toolbody : (input_assignment | ws)* (script | command) (output_assignment | ws)* ;
+toolbody : (attribute | ws)* (input_assignment | ws)* (script | command) (output_assignment | ws)* ;
 
 name : symbol ;
 typedecl : (symbol | FILE | DIRECTORY) (OPENBRACKET CLOSEBRACKET)? ;
@@ -69,9 +71,11 @@ param_list : OPENPAREN ws* (param_decl ws* (COMMA ws* param_decl)*)? ws* CLOSEPA
 param_decl : name ws+ typedecl ;
 
 symbolpart : WORKFLOW | TOOL | FILE | DIRECTORY | STDOUT | FOR | EACH | IN | NOTWS;
-symbol : NOTWS | symbolpart symbolpart+ ;
+symbol : NOTWS | symbolpart (symbolpart | INTEGER | FLOAT)+ ;
 
-ws : NEWLINE | SPACE ;
+ws : NEWLINE | SPACE | COMMENT ;
+
+attribute : name COLON ws+ (symbol | FLOAT | INTEGER | OPENBRACE ws* (attribute (COMMA | NEWLINE))* ws* CLOSEBRACE) ;
 
 DOLLAR : '$' ;
 OPENPAREN : '(' ;
@@ -84,13 +88,19 @@ COLON : ':' ;
 COMMA : ',' ;
 EQ : '=' ;
 NEWLINE : '\n' ;
-SPACE  : (' ' | '\t') ;
+SPACE  : (' ' | '\t' | '\\\n') ;
 HASHBANG : '#!';
+COMMENT : '#' ~('!') .*? NEWLINE ;
 OPENSCRIPT : '<<<\n';
 CLOSESCRIPT : '>>>\n';
 
 SQSTRING: '\'' .*? '\'';
 DQSTRING: '"' .*? '"';
+BQSTRING: '`' .*? '`';
+
+FLOAT: '-'? ('0'..'9')+ '.' ('0'..'9')+ ;
+INTEGER: '-'? ('0'..'9')+  ;
+
 WORKFLOW : 'workflow';
 TOOL : 'tool';
 FILE : 'File' ;
