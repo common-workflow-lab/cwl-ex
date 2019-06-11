@@ -3,8 +3,8 @@ grammar cwl2;
 root : (workflowdecl | tooldecl | ws)+ ;
 
 javascript : (jsstring | jsexpr | jsblock | jslist | ws | DOLLAR | COLON
-	   | COMMA | EQ | COMMENT | FLOAT | INTEGER
-	   | FILE | DIRECTORY | STDOUT | FOR | EACH | IN | NOTWS )*?;
+	   | COMMA | EQ | COMMENT | FLOAT | INTEGER | FILE | DIRECTORY | STDOUT | FOR
+	   | EACH | IN | DEF | RUN | NOTWS )*?;
 
 jsstring : SQSTRING | DQSTRING | BQSTRING ;
 
@@ -14,25 +14,21 @@ jsblock : OPENBRACE javascript CLOSEBRACE ;
 
 jslist : OPENBRACKET javascript CLOSEBRACKET ;
 
-subst : DOLLAR jsexpr | DOLLAR jsblock ;
+subst : typedecl (jsexpr | jsblock) ;
 
-filedecl : FILE jsexpr ;
+assignment : symbol ws* EQ ws* subst ws*? NEWLINE ;
 
-dirdecl : DIRECTORY jsexpr ;
+workflowdecl : DEF ws+ WORKFLOW ws+ name ws* input_params ws* output_params ws* OPENBRACE workflowbody CLOSEBRACE ;
 
-assignment : symbol ws+ typedecl? ws* EQ ws* (subst|filedecl|dirdecl|STDOUT) ws*? NEWLINE ;
+tooldecl : DEF ws+ TOOL ws+ name ws* input_params ws* output_params ws* OPENBRACE toolbody CLOSEBRACE ;
 
-workflowdecl : WORKFLOW ws+ name ws* input_params ws* output_params ws* OPENBRACE workflowbody CLOSEBRACE ;
-
-tooldecl : TOOL ws+ name ws* input_params ws* output_params ws* OPENBRACE toolbody CLOSEBRACE ;
-
-workflowbody : (assignment | ws | step)* ;
+workflowbody : (assignment | ws | step | tooldecl)* ;
 
 step : (symbol | stepinputs) ws* EQ ws* (toolstep | call) ws*? foreach? NEWLINE ;
 
 foreach : FOR ws+ EACH ws+ stepinputs ws+ IN ws+ stepinputs ;
 
-toolstep : TOOL ws* stepinputs ws* output_params ws* OPENBRACE ws* toolbody ws* CLOSEBRACE ;
+toolstep : RUN ws+ TOOL ws* stepinputs ws* output_params ws* OPENBRACE ws* toolbody ws* CLOSEBRACE ;
 
 call : symbol ws* stepinputs ;
 
@@ -44,7 +40,8 @@ command : SPACE* argument (SPACE+ argument)* SPACE* NEWLINE ;
 
 freetext : DOLLAR | OPENPAREN | CLOSEPAREN | OPENBRACE | CLOSEBRACE | OPENBRACKET | CLOSEBRACKET
             | COLON | COMMA | EQ | HASHBANG | COMMENT | OPENSCRIPT | SQSTRING | DQSTRING | DQSTRING
-	    | FLOAT | INTEGER | WORKFLOW | TOOL | FILE | DIRECTORY | STDOUT | FOR | EACH | IN | NOTWS ;
+	    | FLOAT | INTEGER | WORKFLOW | TOOL | FILE | DIRECTORY | STDOUT
+	    | FOR | EACH | IN | DEF | RUN | NOTWS ;
 
 line : (freetext | SPACE)* NEWLINE ;
 
@@ -70,7 +67,7 @@ param_list : OPENPAREN ws* (param_decl ws* (COMMA ws* param_decl)*)? ws* CLOSEPA
 
 param_decl : name ws+ typedecl ;
 
-symbolpart : WORKFLOW | TOOL | FILE | DIRECTORY | STDOUT | FOR | EACH | IN | NOTWS;
+symbolpart : WORKFLOW | TOOL | FILE | DIRECTORY | STDOUT | FOR | EACH | IN | DEF | RUN | NOTWS;
 symbol : NOTWS | symbolpart (symbolpart | INTEGER | FLOAT)+ ;
 
 ws : NEWLINE | SPACE | COMMENT ;
@@ -90,7 +87,7 @@ EQ : '=' ;
 NEWLINE : '\n' ;
 SPACE  : (' ' | '\t' | '\\\n') ;
 HASHBANG : '#!';
-COMMENT : '#' ~('!') .*? NEWLINE ;
+COMMENT : ('#' NEWLINE) | ('#' ~('!') .*? NEWLINE) ;
 OPENSCRIPT : '<<<\n';
 CLOSESCRIPT : '>>>\n';
 
@@ -109,5 +106,7 @@ STDOUT : 'stdout';
 FOR : 'for' ;
 EACH : 'each' ;
 IN : 'in';
+DEF : 'def' ;
+RUN : 'run' ;
 
 NOTWS : ~('\n' | ' ' | '\t') ;

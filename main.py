@@ -18,12 +18,6 @@ class MyCL(cwl2Listener):
     def enterAssignment(self, ctx:cwl2Parser.AssignmentContext):
         if ctx.subst():
             print("assignment '%s' '%s'" % (ctx.symbol().getText(), ctx.subst().getText()))
-        if ctx.filedecl():
-            print("assignment '%s' '%s'" % (ctx.symbol().getText(), ctx.filedecl().getText()))
-        if ctx.dirdecl():
-            print("assignment '%s' '%s'" % (ctx.symbol().getText(), ctx.dirdecl().getText()))
-        if ctx.STDOUT():
-            print("assignment '%s' '%s'" % (ctx.symbol().getText(), ctx.STDOUT().getText()))
 
     # Enter a parse tree produced by cwl2Parser#workflowdecl.
     def enterWorkflowdecl(self, ctx:cwl2Parser.WorkflowdeclContext):

@@ -1,0 +1,84 @@
+# Workflow ported from snakemake example here
+#
+# https://snakemake.readthedocs.io/en/stable/getting_started/examples.html
+#
+
+def workflow main() (gene_exp File, isoform_exp File, stats File) {
+  #
+  # Can bind variables to files or javascript expressions.
+  #
+  TRACK = File("hg19.gtf")
+  REF = File("hg19.fa")
+
+  # sample names and classes
+  CLASS1 = string[]('101 102'.split())
+  CLASS2 = string[]('103 104'.split())
+  SAMPLES = string[](CLASS1.concat(CLASS2))
+  SAMPLE_FILES = File[](SAMPLES.map((sample) => File(`assembly/#{sample}/transcripts.gtf`)))
+
+  # path to bam files
+  CLASS1_BAM = File[](CLASS1.map((s) => File(`mapped/#{sample}.bam`)))
+  CLASS2_BAM = File[](CLASS2.map((s) => File(`mapped/#{sample}.bam`)))
+
+  #
+  # tools defined inside a workflow get the inputs to the workflow
+  # and any variables defined up to this point.
+  #
+  def tool assembly(sampleid string, sample File) (transcripts File) {
+    # set requirements
+    ResourceRequirement: {
+      coresMin: 4
+    }
+
+    # command line
+    cufflinks --num-threads $(runtime.cores) -o assembly/$(inputs.sampleid) \
+      --frag-bias-correct $(inputs.REF) $(inputs.sample)
+
+    # output binding
+    transcripts = File(`assembly/#{inputs.sampleid}/transcripts.gtf`)
+  }
+
+  #
+  # call the tool, scattering over variables
+  #
+  transcripts = assembly(sampleid, samplefile) \
+    for each (sampleid, samplefile) in (SAMPLES, SAMPLE_FILES)
+
+  #
+  # tools can be defined inline
+  #
+  (compose_merge=output) = run tool (transcripts) (output File) {
+    # Can define a script inline
+
+    #!python <<<
+inputs = $(inputs)
+with open("assembly/assemblies.txt", 'w') as out:
+  print([t["location"] for t in input["transcripts"]], sep="\n", file=out)
+>>>
+    output = File("assembly/assemblies.txt")
+  }
+
+  merged = run tool (compose_merge) (merged File) {
+    cuffmerge -o assembly/merged -s $(inputs.REF} $(inputs.compose_merge)
+    merged = File('assembly/merged/merged.gtf')
+  }
+
+  stats = run tool (merged) (stats File) {
+    cuffcompare -o assembly/comparisonall -s $(inputs.REF) -r $(inputs.TRACK) $(inputs.merged)
+    stats = File("assembly/comparison/all.stats")
+  }
+
+  (gene_exp, isoform_exp) = run tool (merged, CLASS1_BAM, CLASS2_BAM) (gene_exp File, isoform_exp File) {
+    ResourceRequirement: {
+      coresMin: 8
+    }
+
+    class1 = string(inputs.CLASS1_BAM.join(","))
+    class2 = string(inputs.CLASS2_BAM.join(","))
+
+    cuffdiff --num-threads $(runtime.cores) $(inputs.merged) $(inputs.class1) $(inputs.class2)
+
+    gene_exp = File('diffexp/gene_exp.diff')
+    isoform_exp = File('diffexp/isoform_exp.diff')
+  }
+}
