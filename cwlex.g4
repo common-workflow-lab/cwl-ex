@@ -22,7 +22,9 @@ workflowdecl : DEF ws+ WORKFLOW ws+ name ws* input_params ws* output_params ws* 
 
 tooldecl : DEF ws+ TOOL ws+ name ws* input_params ws* output_params ws* OPENBRACE toolbody CLOSEBRACE ;
 
-workflowbody : (assignment | ws | step | tooldecl)* ;
+workflowbodyStatement : (assignment | ws | step | tooldecl) ;
+
+workflowbody : workflowbodyStatement* ;
 
 step : (symbol | stepinputs) ws* EQ ws* (toolstep | call) ws*? foreach? NEWLINE ;
 
@@ -51,10 +53,14 @@ script : SPACE* HASHBANG argument (SPACE+ argument)* SPACE* scriptbody ;
 
 argument : (freetext)+;
 
-input_assignment : assignment ;
+file_const : FILE ws* OPENPAREN (SQSTRING | DQSTRING) CLOSEPAREN ;
+dir_const : DIRECTORY ws* OPENPAREN (SQSTRING | DQSTRING) CLOSEPAREN ;
+
+const_assignment : name ws* EQ ws* (SQSTRING | DQSTRING | INTEGER | FLOAT | file_const | dir_const) ws*? NEWLINE ;
+
 output_assignment : assignment ;
 
-toolbody : (attribute | ws)* (input_assignment | ws)* (script | command) (output_assignment | ws)* ;
+toolbody : (attribute | ws)* (const_assignment | ws)* (script | command) (output_assignment | ws)* ;
 
 name : symbol ;
 typedecl : (symbol | FILE | DIRECTORY) (OPENBRACKET CLOSEBRACKET)? ;

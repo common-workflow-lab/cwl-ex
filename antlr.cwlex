@@ -1,4 +1,4 @@
-def tool antlr() (parser File[]) {
+def tool antlr () (parser File[]) {
   file = File("cwlex.g4")
   antlr4 -Dlanguage=JavaScript -o . $(inputs.file)
   parser = File("*.js")
