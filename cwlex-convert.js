@@ -14,6 +14,10 @@ CwlExListener = function() {
 CwlExListener.prototype = Object.create(cwlexListener.prototype);
 CwlExListener.prototype.constructor = CwlExListener;
 
+CwlExListener.prototype.top = function() {
+    return this.current[this.current.length-1];
+};
+
 CwlExListener.prototype.enterWorkflowdecl = function(ctx) {
     var wf = {
         "class": "Workflow",
@@ -25,11 +29,7 @@ CwlExListener.prototype.enterWorkflowdecl = function(ctx) {
         wf.inputs.push({"name": ip.name().getText(),
                      "type": ip.typedecl().getText()});
     });
-    ctx.output_params().param_list().param_decl().map((ip) => {
-        wf.outputs.push({"name": ip.name().getText(),
-                     "type": ip.typedecl().getText()});
-    });
-    this.current.push(wf);
+    this.current.push({tool: wf, notes: {outputs: {}}});
 };
 
 CwlExListener.prototype.exitWorkflowdecl = function(ctx) {
@@ -38,7 +38,7 @@ CwlExListener.prototype.exitWorkflowdecl = function(ctx) {
 };
 
 CwlExListener.prototype.enterWorkflowbody = function(ctx) {
-    var top = this.current[this.current.length-1];
+    var top = this.top().tool;
     ctx.workflowbodyStatement().map((stmt) => {
         if (stmt.assignment()) {
 
@@ -51,15 +51,16 @@ CwlExListener.prototype.enterTooldecl = function(ctx) {
         "class": "CommandLineTool",
         "id": ctx.name().getText(),
         inputs: {},
-        outputs: {}
+        outputs: [],
+        requirements: {
+            "InlineJavascriptRequirement": {}
+        }
     };
     ctx.input_params().param_list().param_decl().map((ip) => {
         tool.inputs[ip.name().getText()] = {"type": ip.typedecl().getText()};
     });
-    ctx.output_params().param_list().param_decl().map((ip) => {
-        tool.outputs[ip.name().getText()] = {"type": ip.typedecl().getText()};
-    });
-    this.current.push(tool);
+
+    this.current.push({tool: tool, notes: {outputs: {}}});
 };
 
 extractString = (ctx) => {
@@ -74,7 +75,8 @@ extractString = (ctx) => {
 };
 
 CwlExListener.prototype.enterToolbody = function(ctx) {
-    var top = this.current[this.current.length-1];
+    var top = this.top().tool;
+    var notes = this.top().notes;
     ctx.const_assignment().map((ca) => {
         var newinput = top.inputs[ca.name().getText()];
         if (!newinput) {
@@ -112,10 +114,36 @@ CwlExListener.prototype.enterToolbody = function(ctx) {
             };
         }
     });
+
+    top["arguments"] = [];
+    ctx.command().argument().map((arg) => {
+        top["arguments"].push(arg.getText());
+    });
+
+    ctx.output_assignment().map((oa) => {
+        var out = {name: oa.assignment().symbol().getText()};
+        top.outputs[out.name] = out;
+
+        var ob = {};
+        out["outputBinding"] = ob;
+        out.type = oa.assignment().subst().typedecl().getText();
+
+        if (oa.assignment().subst().jsexpr()) {
+            expr = "$"+oa.assignment().subst().jsexpr().getText();
+        } else {
+            expr = "$"+oa.assignment().subst().jsblock().getText();
+        }
+        if (out.type == "File" || out.type == "Directory" ||
+            out.type == "File[]" || out.type == "Directory[]") {
+            ob["glob"] = expr;
+        } else {
+            ob["outputEval"] = expr;
+        }
+    });
 }
 
 CwlExListener.prototype.exitTooldecl = function(ctx) {
-    var tool = this.current.pop();
+    var tool = this.current.pop().tool;
     this.graph[tool.id] = tool;
 }
 
@@ -127,8 +155,17 @@ var convert = (input) => {
   parser.buildParseTrees = true;
   var tree = parser.root();
   var myls = new CwlExListener();
-  antlr4.tree.ParseTreeWalker.DEFAULT.walk(myls, tree);
-  return myls.graph;
+    antlr4.tree.ParseTreeWalker.DEFAULT.walk(myls, tree);
+
+    var r;
+    var values = Object.values(myls.graph);
+    if (values.length == 1) {
+        r = values[0];
+    } else {
+        r = {"$graph": values};
+    }
+    r["cwlVersion"] = "v1.0";
+    return r;
 };
 
 exports.convert = convert;

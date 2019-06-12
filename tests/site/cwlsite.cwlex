@@ -1,0 +1,22 @@
+
+def workflow main(
+  render struct {
+    source File,
+    renderlist? []string,
+    redirect? []string,
+    target? string,
+    brandlink string,
+    brandimg string,
+    primtype? string,
+    extra: File
+  }[],
+  schemas struct {
+    schema_in File,
+    context_target string,
+    rdfs_target string,
+    graph_target string
+  }[],
+  brandimg File
+) {
+
+}

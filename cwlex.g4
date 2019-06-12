@@ -4,7 +4,7 @@ root : (workflowdecl | tooldecl | ws)+ ;
 
 javascript : (jsstring | jsexpr | jsblock | jslist | ws | DOLLAR | COLON
 	   | COMMA | EQ | COMMENT | FLOAT | INTEGER | FILE | DIRECTORY | STDOUT | FOR
-	   | EACH | IN | DEF | RUN | NOTWS )*?;
+	   | EACH | IN | DEF | RUN | RETURN | NOTWS )*?;
 
 jsstring : SQSTRING | DQSTRING | BQSTRING ;
 
@@ -20,7 +20,7 @@ assignment : symbol ws* EQ ws* subst ws*? NEWLINE ;
 
 workflowdecl : DEF ws+ WORKFLOW ws+ name ws* input_params ws* output_params ws* OPENBRACE workflowbody CLOSEBRACE ;
 
-tooldecl : DEF ws+ TOOL ws+ name ws* input_params ws* output_params ws* OPENBRACE toolbody CLOSEBRACE ;
+tooldecl : DEF ws+ TOOL ws+ name ws* input_params ws* OPENBRACE toolbody CLOSEBRACE ;
 
 workflowbodyStatement : (assignment | ws | step | tooldecl) ;
 
@@ -30,7 +30,7 @@ step : (symbol | stepinputs) ws* EQ ws* (toolstep | call) ws*? foreach? NEWLINE 
 
 foreach : FOR ws+ EACH ws+ stepinputs ws+ IN ws+ stepinputs ;
 
-toolstep : RUN ws+ TOOL ws* stepinputs ws* output_params ws* OPENBRACE ws* toolbody ws* CLOSEBRACE ;
+toolstep : RUN ws+ TOOL ws* stepinputs ws* OPENBRACE ws* toolbody ws* CLOSEBRACE ;
 
 call : symbol ws* stepinputs ;
 
@@ -38,20 +38,18 @@ stepinput : name | SQSTRING | DQSTRING | name EQ (name | SQSTRING | DQSTRING) ;
 
 stepinputs : OPENPAREN (stepinput ws* (ws* COMMA ws* stepinput)* ws*)? CLOSEPAREN ;
 
-command : SPACE* argument (SPACE+ argument)* SPACE* NEWLINE ;
+scriptbody : OPENSCRIPT line*? CLOSESCRIPT ;
 
 freetext : DOLLAR | OPENPAREN | CLOSEPAREN | OPENBRACE | CLOSEBRACE | OPENBRACKET | CLOSEBRACKET
             | COLON | COMMA | EQ | HASHBANG | COMMENT | OPENSCRIPT | SQSTRING | DQSTRING | DQSTRING
 	    | FLOAT | INTEGER | WORKFLOW | TOOL | FILE | DIRECTORY | STDOUT
-	    | FOR | EACH | IN | DEF | RUN | NOTWS ;
+	    | FOR | EACH | IN | DEF | RUN | RETURN | NOTWS ;
 
 line : (freetext | SPACE)* NEWLINE ;
 
-scriptbody : OPENSCRIPT line*? CLOSESCRIPT ;
-
-script : SPACE* HASHBANG argument (SPACE+ argument)* SPACE* scriptbody ;
-
 argument : (freetext)+;
+
+command : SPACE* argument (SPACE+ argument)* SPACE* (scriptbody | NEWLINE) ;
 
 file_const : FILE ws* OPENPAREN (SQSTRING | DQSTRING) CLOSEPAREN ;
 dir_const : DIRECTORY ws* OPENPAREN (SQSTRING | DQSTRING) CLOSEPAREN ;
@@ -60,7 +58,8 @@ const_assignment : name ws* EQ ws* (SQSTRING | DQSTRING | INTEGER | FLOAT | file
 
 output_assignment : assignment ;
 
-toolbody : (attribute | ws)* (const_assignment | ws)* (script | command) (output_assignment | ws)* ;
+returnvar : symbol ;
+toolbody : (attribute | ws)* (const_assignment | ws)* command (output_assignment | ws)* ;
 
 name : symbol ;
 typedecl : (symbol | FILE | DIRECTORY) (OPENBRACKET CLOSEBRACKET)? ;
@@ -73,7 +72,7 @@ param_list : OPENPAREN ws* (param_decl ws* (COMMA ws* param_decl)*)? ws* CLOSEPA
 
 param_decl : name ws+ typedecl ;
 
-symbolpart : WORKFLOW | TOOL | FILE | DIRECTORY | STDOUT | FOR | EACH | IN | DEF | RUN | NOTWS;
+symbolpart : WORKFLOW | TOOL | FILE | DIRECTORY | STDOUT | FOR | EACH | IN | DEF | RUN | RETURN | NOTWS;
 symbol : NOTWS | symbolpart (symbolpart | INTEGER | FLOAT)+ ;
 
 ws : NEWLINE | SPACE | COMMENT ;
@@ -114,5 +113,6 @@ EACH : 'each' ;
 IN : 'in';
 DEF : 'def' ;
 RUN : 'run' ;
+RETURN : 'return';
 
 NOTWS : ~('\n' | ' ' | '\t') ;
