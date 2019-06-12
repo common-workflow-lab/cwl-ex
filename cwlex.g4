@@ -1,4 +1,4 @@
-grammar cwl2;
+grammar cwlex;
 
 root : (workflowdecl | tooldecl | ws)+ ;
 
