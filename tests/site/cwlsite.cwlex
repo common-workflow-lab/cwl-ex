@@ -1,3 +1,9 @@
+def tool makerdfs(schema File, target_path string) {
+  python -mschema_salad --print-rdfs
+  rdfs = File("stdout")
+  targetdir = string(inputs.target_path.match(/^([^/]+)\/[^/]/)[1])
+}
+
 def workflow main(
   render struct {
     source File,
@@ -22,5 +28,5 @@ def workflow main(
                              target_path=$(inputs.schema.rdfs_target)
 			     ) for each schema in schemas
 
-  return (doc_out, report)
+  return (rdfs, targetdir)
 }

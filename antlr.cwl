@@ -1,16 +1,28 @@
 {
   "class": "CommandLineTool",
   "id": "antlr",
-  "inputs": {
-    "file": {
+  "inputs": [
+    {
+      "id": "file",
       "type": "File",
       "default": {
         "class": "File",
         "location": "cwlex.g4"
       }
     }
-  },
-  "outputs": [],
+  ],
+  "outputs": [
+    {
+      "id": "parser",
+      "outputBinding": {
+        "glob": "$(\"*.js\")"
+      },
+      "type": {
+        "type": "array",
+        "items": "File"
+      }
+    }
+  ],
   "requirements": {
     "InlineJavascriptRequirement": {}
   },

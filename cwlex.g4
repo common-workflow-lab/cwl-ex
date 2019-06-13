@@ -34,7 +34,11 @@ step : symbolassignlist ws* EQ ws* (toolstep | call) ws*? foreach? NEWLINE ;
 
 symbollist : symbol ws* (COMMA ws* symbol)* ;
 
-foreach : FOR ws+ EACH ws+ symbollist ws+ IN ws+ symbollist ;
+scatterparams : symbollist ;
+
+scattersources : symbollist ;
+
+foreach : FOR ws+ EACH ws+ scatterparams ws+ IN ws+ scattersources ;
 
 toolstep : RUN ws+ TOOL ws* stepinputs ws* OPENBRACE ws* toolbody ws* CLOSEBRACE ;
 
