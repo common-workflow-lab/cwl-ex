@@ -215,12 +215,15 @@ CwlExListener.prototype.exitOutput_assignment = function(ctx) {
     this.popWork("set_type_on");
 }
 
-CwlExListener.prototype.enterToolbody = function(ctx) {
+CwlExListener.prototype.enterCommand = function(ctx) {
     var top = this.workTop("tool");
     top["arguments"] = [];
-    ctx.command().argument().map((arg) => {
+    ctx.argument().map((arg) => {
         top["arguments"].push(arg.getText());
     });
+    if (ctx.redirect()) {
+        top["stdout"] = ctx.redirect().argument().getText();
+    }
 }
 
 CwlExListener.prototype.exitTooldecl = function(ctx) {

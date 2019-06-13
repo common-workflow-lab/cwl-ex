@@ -3,8 +3,9 @@ grammar cwlex;
 root : (workflowdecl | tooldecl | ws)+ ;
 
 javascript : (jsstring | jsexpr | jsblock | jslist | ws | DOLLAR | COLON
-	   | COMMA | EQ | QUES | COMMENT | FLOAT | INTEGER | FILE | DIRECTORY | STDOUT | FOR
-	   | EACH | IN | DEF | RUN | RETURN | STRUCT | NOTWS )*?;
+	   | COMMA | EQ | QUES | GREATER | LESSER | COMMENT | FLOAT | INTEGER
+	   | FILE | DIRECTORY | STDOUT | FOR | EACH | IN | DEF | RUN
+	   | RETURN | STRUCT | NOTWS )*?;
 
 jsstring : SQSTRING | DQSTRING | BQSTRING ;
 
@@ -50,16 +51,20 @@ stepinputs : OPENPAREN (stepinput ws* (ws* COMMA ws* stepinput)* ws*)? CLOSEPARE
 
 scriptbody : OPENSCRIPT line*? CLOSESCRIPT ;
 
-freetext : DOLLAR | OPENPAREN | CLOSEPAREN | OPENBRACE | CLOSEBRACE | OPENBRACKET | CLOSEBRACKET
-            | COLON | COMMA | EQ | QUES | HASHBANG | COMMENT | OPENSCRIPT | SQSTRING | DQSTRING | DQSTRING
-	    | FLOAT | INTEGER | WORKFLOW | TOOL | FILE | DIRECTORY | STDOUT
+freetext : DOLLAR | OPENPAREN | CLOSEPAREN | OPENBRACE | CLOSEBRACE
+	    | OPENBRACKET | CLOSEBRACKET
+            | COLON | COMMA | EQ | QUES | LESSER | COMMENT | OPENSCRIPT
+	    | SQSTRING | DQSTRING | DQSTRING | FLOAT | INTEGER | WORKFLOW | TOOL
+	    | FILE | DIRECTORY | STDOUT
 	    | FOR | EACH | IN | DEF | RUN | RETURN | STRUCT | NOTWS ;
 
 line : (freetext | SPACE)* NEWLINE ;
 
-argument : (freetext)+;
+argument : freetext+;
 
-command : SPACE* argument (SPACE+ argument)* SPACE* (scriptbody | NEWLINE) ;
+redirect : GREATER SPACE* argument ;
+
+command : SPACE* argument (SPACE+ argument)* SPACE* redirect? SPACE* (scriptbody | NEWLINE) ;
 
 file_const : FILE ws* OPENPAREN (SQSTRING | DQSTRING) CLOSEPAREN ;
 dir_const : DIRECTORY ws* OPENPAREN (SQSTRING | DQSTRING) CLOSEPAREN ;
@@ -100,8 +105,9 @@ COMMA : ',' ;
 EQ : '=' ;
 QUES : '?';
 NEWLINE : '\n' ;
+GREATER : '>' ;
+LESSER : '<' ;
 SPACE  : (' ' | '\t' | '\\\n') ;
-HASHBANG : '#!';
 COMMENT : ('#' NEWLINE) | ('#' ~('!') .*? NEWLINE) ;
 OPENSCRIPT : '<<<\n';
 CLOSESCRIPT : '>>>\n';

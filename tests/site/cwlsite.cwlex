@@ -1,6 +1,6 @@
 def tool makerdfs(schema File, target_path string) {
-  python -mschema_salad --print-rdfs
-  rdfs = File("stdout")
+  python -mschema_salad --print-rdfs $(inputs.schema) > $(inputs.target_path)
+  rdfs = File(inputs.target_path)
   targetdir = string(inputs.target_path.match(/^([^/]+)\/[^/]/)[1])
 }
 
