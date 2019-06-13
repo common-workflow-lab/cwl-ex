@@ -1,14 +1,13 @@
-
 def workflow main(
   render struct {
     source File,
-    renderlist? []string,
-    redirect? []string,
-    target? string,
+    renderlist? string[],
+    redirect? string[],
+    target string,
     brandlink string,
     brandimg string,
     primtype? string,
-    extra: File
+    extra File
   }[],
   schemas struct {
     schema_in File,
@@ -19,4 +18,9 @@ def workflow main(
   brandimg File
 ) {
 
+  (rdfs, targetdir) = makerdfs(schema=$(inputs.schema.schema_in),
+                             target_path=$(inputs.schema.rdfs_target)
+			     ) for each schema in schemas
+
+  return (doc_out, report)
 }

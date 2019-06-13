@@ -3,8 +3,8 @@ grammar cwlex;
 root : (workflowdecl | tooldecl | ws)+ ;
 
 javascript : (jsstring | jsexpr | jsblock | jslist | ws | DOLLAR | COLON
-	   | COMMA | EQ | COMMENT | FLOAT | INTEGER | FILE | DIRECTORY | STDOUT | FOR
-	   | EACH | IN | DEF | RUN | RETURN | NOTWS )*?;
+	   | COMMA | EQ | QUES | COMMENT | FLOAT | INTEGER | FILE | DIRECTORY | STDOUT | FOR
+	   | EACH | IN | DEF | RUN | RETURN | STRUCT | NOTWS )*?;
 
 jsstring : SQSTRING | DQSTRING | BQSTRING ;
 
@@ -18,32 +18,38 @@ subst : typedecl (jsexpr | jsblock) ;
 
 assignment : symbol ws* EQ ws* subst ws*? NEWLINE ;
 
-workflowdecl : DEF ws+ WORKFLOW ws+ name ws* input_params ws* output_params ws* OPENBRACE workflowbody CLOSEBRACE ;
+workflowdecl : DEF ws+ WORKFLOW ws+ name ws* input_params ws* OPENBRACE workflowbody CLOSEBRACE ;
 
 tooldecl : DEF ws+ TOOL ws+ name ws* input_params ws* OPENBRACE toolbody CLOSEBRACE ;
 
-workflowbodyStatement : (assignment | ws | step | tooldecl) ;
+workflowbodyStatement : (assignment | ws | step | tooldecl ) ;
 
-workflowbody : workflowbodyStatement* ;
+workflowbody : workflowbodyStatement* ws* RETURN ws+ symbolassignlist ws* ;
 
-step : (symbol | stepinputs) ws* EQ ws* (toolstep | call) ws*? foreach? NEWLINE ;
+symbolassign : name | name ws* EQ ws* symbol ;
 
-foreach : FOR ws+ EACH ws+ stepinputs ws+ IN ws+ stepinputs ;
+symbolassignlist : symbol | OPENPAREN ws* symbolassign ws* (COMMA ws* symbolassign)* ws* CLOSEPAREN;
+
+step : symbolassignlist ws* EQ ws* (toolstep | call) ws*? foreach? NEWLINE ;
+
+symbollist : symbol ws* (COMMA ws* symbol)* ;
+
+foreach : FOR ws+ EACH ws+ symbollist ws+ IN ws+ symbollist ;
 
 toolstep : RUN ws+ TOOL ws* stepinputs ws* OPENBRACE ws* toolbody ws* CLOSEBRACE ;
 
-call : symbol ws* stepinputs ;
+call : symbol ws* stepinputs ws* foreach?;
 
-stepinput : name | SQSTRING | DQSTRING | name EQ (name | SQSTRING | DQSTRING) ;
+stepinput : name | name EQ (symbol | SQSTRING | DQSTRING | INTEGER | FLOAT | DOLLAR jsexpr) ;
 
 stepinputs : OPENPAREN (stepinput ws* (ws* COMMA ws* stepinput)* ws*)? CLOSEPAREN ;
 
 scriptbody : OPENSCRIPT line*? CLOSESCRIPT ;
 
 freetext : DOLLAR | OPENPAREN | CLOSEPAREN | OPENBRACE | CLOSEBRACE | OPENBRACKET | CLOSEBRACKET
-            | COLON | COMMA | EQ | HASHBANG | COMMENT | OPENSCRIPT | SQSTRING | DQSTRING | DQSTRING
+            | COLON | COMMA | EQ | QUES | HASHBANG | COMMENT | OPENSCRIPT | SQSTRING | DQSTRING | DQSTRING
 	    | FLOAT | INTEGER | WORKFLOW | TOOL | FILE | DIRECTORY | STDOUT
-	    | FOR | EACH | IN | DEF | RUN | RETURN | NOTWS ;
+	    | FOR | EACH | IN | DEF | RUN | RETURN | STRUCT | NOTWS ;
 
 line : (freetext | SPACE)* NEWLINE ;
 
@@ -62,17 +68,16 @@ returnvar : symbol ;
 toolbody : (attribute | ws)* (const_assignment | ws)* command (output_assignment | ws)* ;
 
 name : symbol ;
-typedecl : (symbol | FILE | DIRECTORY) (OPENBRACKET CLOSEBRACKET)? ;
+structdecl : STRUCT ws* OPENBRACE ws* (param_decl ws* (COMMA ws* param_decl)*)? ws* CLOSEBRACE ;
+typedecl : (symbol | FILE | DIRECTORY | structdecl) (OPENBRACKET CLOSEBRACKET)? ;
 
 input_params : param_list ;
 
-output_params : param_list ;
-
 param_list : OPENPAREN ws* (param_decl ws* (COMMA ws* param_decl)*)? ws* CLOSEPAREN ;
 
-param_decl : name ws+ typedecl ;
+param_decl : name QUES? ws+ typedecl ;
 
-symbolpart : WORKFLOW | TOOL | FILE | DIRECTORY | STDOUT | FOR | EACH | IN | DEF | RUN | RETURN | NOTWS;
+symbolpart : WORKFLOW | TOOL | FILE | DIRECTORY | STDOUT | FOR | EACH | IN | DEF | RUN | RETURN | STRUCT | NOTWS;
 symbol : NOTWS | symbolpart (symbolpart | INTEGER | FLOAT)+ ;
 
 ws : NEWLINE | SPACE | COMMENT ;
@@ -89,6 +94,7 @@ CLOSEBRACKET : ']' ;
 COLON : ':' ;
 COMMA : ',' ;
 EQ : '=' ;
+QUES : '?';
 NEWLINE : '\n' ;
 SPACE  : (' ' | '\t' | '\\\n') ;
 HASHBANG : '#!';
@@ -114,5 +120,6 @@ IN : 'in';
 DEF : 'def' ;
 RUN : 'run' ;
 RETURN : 'return';
+STRUCT : 'struct';
 
 NOTWS : ~('\n' | ' ' | '\t') ;

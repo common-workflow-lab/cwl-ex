@@ -14,8 +14,19 @@ CwlExListener = function() {
 CwlExListener.prototype = Object.create(cwlexListener.prototype);
 CwlExListener.prototype.constructor = CwlExListener;
 
-CwlExListener.prototype.top = function() {
-    return this.current[this.current.length-1];
+CwlExListener.prototype.workTop = function(s) {
+    return this.current[s][this.current[s].length-1];
+};
+
+CwlExListener.prototype.pushWork = function(s, n) {
+    if (!this.current[s]) {
+        this.current[s] = [];
+    }
+    return this.current[s].push(n);
+};
+
+CwlExListener.prototype.popWork = function(s) {
+    return this.current[s].pop();
 };
 
 CwlExListener.prototype.enterWorkflowdecl = function(ctx) {
@@ -25,20 +36,61 @@ CwlExListener.prototype.enterWorkflowdecl = function(ctx) {
         inputs: [],
         outputs: []
     };
-    ctx.input_params().param_list().param_decl().map((ip) => {
-        wf.inputs.push({"name": ip.name().getText(),
-                     "type": ip.typedecl().getText()});
-    });
-    this.current.push({tool: wf, notes: {outputs: {}}});
+
+    this.pushWork("tool", wf);
+    this.pushWork("add_fields_to", wf.inputs);
+};
+
+CwlExListener.prototype.enterParam_decl = function(ctx) {
+    var field = {"name": ctx.name().getText()};
+    this.workTop("add_fields_to").push(field);
+    this.pushWork("set_type_on", field);
+};
+
+CwlExListener.prototype.exitParam_decl = function(ctx) {
+    var tp = this.popWork("set_type_on");
+    if (ctx.QUES()) {
+        tp.type = ["null", tp.type];
+    }
+};
+
+CwlExListener.prototype.enterTypedecl = function(ctx) {
+    if (ctx.symbol()) {
+        this.pushWork("field_type", ctx.symbol().getText());
+    }
+    if (ctx.FILE()) {
+        this.pushWork("field_type", ctx.FILE().getText());
+    }
+    if (ctx.DIRECTORY()) {
+        this.pushWork("field_type", ctx.DIRECTORY().getText());
+    }
+};
+
+CwlExListener.prototype.enterStructdecl = function(ctx) {
+    var type = {type: "record", fields: []};
+    this.pushWork("field_type", type);
+    this.pushWork("add_fields_to", type.fields);
+};
+
+CwlExListener.prototype.exitStructdecl = function(ctx) {
+    this.popWork("add_fields_to");
+};
+
+CwlExListener.prototype.exitTypedecl = function(ctx) {
+    var ft = this.popWork("field_type");
+    if (ctx.OPENBRACKET()) {
+        ft = {"type": "array", "items": ft};
+    }
+    this.workTop("set_type_on").type = ft;
 };
 
 CwlExListener.prototype.exitWorkflowdecl = function(ctx) {
-    var wf = this.current.pop();
+    var wf = this.popWork("tool");
     this.graph[wf.id] = wf;
 };
 
 CwlExListener.prototype.enterWorkflowbody = function(ctx) {
-    var top = this.top().tool;
+    var top = this.workTop("tool");
     ctx.workflowbodyStatement().map((stmt) => {
         if (stmt.assignment()) {
 
@@ -56,11 +108,11 @@ CwlExListener.prototype.enterTooldecl = function(ctx) {
             "InlineJavascriptRequirement": {}
         }
     };
-    ctx.input_params().param_list().param_decl().map((ip) => {
-        tool.inputs[ip.name().getText()] = {"type": ip.typedecl().getText()};
-    });
+    //ctx.input_params().param_list().param_decl().map((ip) => {
+    //    tool.inputs[ip.name().getText()] = {"type": ip.typedecl().getText()};
+    //});
 
-    this.current.push({tool: tool, notes: {outputs: {}}});
+    this.pushWork("tool", tool);
 };
 
 extractString = (ctx) => {
@@ -143,7 +195,7 @@ CwlExListener.prototype.enterToolbody = function(ctx) {
 }
 
 CwlExListener.prototype.exitTooldecl = function(ctx) {
-    var tool = this.current.pop().tool;
+    var tool = this.popWork("tool");
     this.graph[tool.id] = tool;
 }
 
