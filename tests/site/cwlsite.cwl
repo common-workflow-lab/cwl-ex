@@ -41,6 +41,196 @@
       "stdout": "$(inputs.target_path)"
     },
     {
+      "class": "CommandLineTool",
+      "id": "makecontext",
+      "inputs": [
+        {
+          "id": "schema",
+          "type": "File"
+        },
+        {
+          "id": "target_path",
+          "type": "string"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "jsonld_context",
+          "outputBinding": {
+            "glob": "$(inputs.target_path)"
+          },
+          "type": "File"
+        },
+        {
+          "id": "targetdir",
+          "outputBinding": {
+            "outputEval": "$(inputs.target_path.match(/^([^/]+)\\/[^/]/)[1])"
+          },
+          "type": "string"
+        }
+      ],
+      "requirements": {
+        "InlineJavascriptRequirement": {}
+      },
+      "arguments": [
+        "python",
+        "-mschema_salad",
+        "--print-jsonld-context",
+        "$(inputs.schema)"
+      ],
+      "stdout": "$(inputs.target_path)"
+    },
+    {
+      "class": "CommandLineTool",
+      "id": "inheritance",
+      "inputs": [
+        {
+          "id": "schema",
+          "type": "File"
+        },
+        {
+          "id": "target_path",
+          "type": "string"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "svg",
+          "outputBinding": {
+            "glob": "$(inputs.target_path)"
+          },
+          "type": "File"
+        },
+        {
+          "id": "targetdir",
+          "outputBinding": {
+            "outputEval": "$(inputs.target_path.match(/^([^/]+)\\/[^/]/)[1])"
+          },
+          "type": "string"
+        }
+      ],
+      "requirements": {
+        "InlineJavascriptRequirement": {},
+        "InitialWorkDirRequirement": {
+          "listing": [
+            {
+              "entryname": "_script",
+              "entry": "  schema-salad-tool --print-inheritance-dot \"$(inputs.schema.path)\" | dot -Tsvg\n"
+            }
+          ]
+        }
+      },
+      "arguments": [
+        "sh",
+        "_script"
+      ],
+      "stdout": "$(inputs.target_path)"
+    },
+    {
+      "class": "CommandLineTool",
+      "id": "makedoc",
+      "inputs": [
+        {
+          "id": "source",
+          "type": "File"
+        },
+        {
+          "id": "renderlist",
+          "type": [
+            "null",
+            {
+              "type": "array",
+              "items": "string"
+            }
+          ],
+          "inputBinding": {
+            "prefix": "--only",
+            "position": 1
+          }
+        },
+        {
+          "id": "redirect",
+          "type": [
+            "null",
+            {
+              "type": "array",
+              "items": "string"
+            }
+          ],
+          "inputBinding": {
+            "prefix": "--redirect",
+            "position": 2
+          }
+        },
+        {
+          "id": "brand",
+          "type": "string",
+          "inputBinding": {
+            "prefix": "--brand",
+            "position": 3
+          }
+        },
+        {
+          "id": "brandlink",
+          "type": "string",
+          "inputBinding": {
+            "prefix": "--brandlink",
+            "position": 4
+          }
+        },
+        {
+          "id": "target",
+          "type": "string"
+        },
+        {
+          "id": "primtype",
+          "type": [
+            "null",
+            "string"
+          ],
+          "inputBinding": {
+            "prefix": "--primtype",
+            "position": 5
+          }
+        },
+        {
+          "id": "extra",
+          "type": "File"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "html",
+          "outputBinding": {
+            "glob": "$(inputs.target)"
+          },
+          "type": "File"
+        },
+        {
+          "id": "targetdir",
+          "outputBinding": {
+            "outputEval": "${\n    var m = inputs.target.match(/^([^/]+)\\/[^/]/);\n    if (m)\n       return m[1];\n    else\n       return \"\";\n  }"
+          },
+          "type": "string"
+        },
+        {
+          "id": "extra_out",
+          "outputBinding": {
+            "glob": "$(inputs.extra.path)"
+          },
+          "type": "File"
+        }
+      ],
+      "requirements": {
+        "InlineJavascriptRequirement": {}
+      },
+      "arguments": [
+        "schema-salad-doc",
+        "$(inputs.source)"
+      ],
+      "stdout": "$(inputs.target)"
+    },
+    {
       "class": "Workflow",
       "id": "main",
       "requirements": {
@@ -153,7 +343,7 @@
             "type": "array",
             "items": "string"
           },
-          "outputSource": "makerdfs/targetdir"
+          "outputSource": "makedoc/targetdir"
         }
       ],
       "steps": [
@@ -175,6 +365,87 @@
           "run": "#makerdfs",
           "scatter": [
             "schema"
+          ]
+        },
+        {
+          "in": {
+            "schema": {
+              "valueFrom": "$(inputs.schema.schema_in)",
+              "source": "schemas"
+            },
+            "target_path": {
+              "valueFrom": "$(inputs.schema.rdfs_target)"
+            }
+          },
+          "out": [
+            "jsonld_context",
+            "targetdir"
+          ],
+          "id": "makecontext",
+          "run": "#makecontext",
+          "scatter": [
+            "schema"
+          ]
+        },
+        {
+          "in": {
+            "schema": {
+              "valueFrom": "$(inputs.schema.schema_in)",
+              "source": "schemas"
+            },
+            "target_path": {
+              "valueFrom": "$(inputs.schema.rdfs_target)"
+            }
+          },
+          "out": [
+            "svg",
+            "targetdir"
+          ],
+          "id": "inheritance",
+          "run": "#inheritance",
+          "scatter": [
+            "schema"
+          ]
+        },
+        {
+          "in": {
+            "source": {
+              "valueFrom": "$(inputs.rdr.source)"
+            },
+            "target": {
+              "valueFrom": "$(inputs.rdr.target)"
+            },
+            "rdrlist": {
+              "valueFrom": "$(inputs.rdr.renderlist)"
+            },
+            "redirect": {
+              "valueFrom": "$(inputs.rdr.redirect)"
+            },
+            "brandlink": {
+              "valueFrom": "$(inputs.rdr.brandlink)"
+            },
+            "brand": {
+              "valueFrom": "$(inputs.rdr.brandimg)"
+            },
+            "primtype": {
+              "valueFrom": "$(inputs.rdr.primtype)"
+            },
+            "extra": {
+              "valueFrom": "$(inputs.rdr.extra)"
+            },
+            "rdr": {
+              "source": "render"
+            }
+          },
+          "out": [
+            "html",
+            "targetdir",
+            "extra_out"
+          ],
+          "id": "makedoc",
+          "run": "#makedoc",
+          "scatter": [
+            "rdr"
           ]
         }
       ]

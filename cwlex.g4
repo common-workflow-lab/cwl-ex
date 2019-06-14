@@ -47,9 +47,11 @@ call : symbol ws* stepinputs ws* foreach?;
 
 stepinput : name | name EQ (symbol | SQSTRING | DQSTRING | INTEGER | FLOAT | DOLLAR jsexpr) ;
 
-stepinputs : OPENPAREN (stepinput ws* (ws* COMMA ws* stepinput)* ws*)? CLOSEPAREN ;
+stepinputs : OPENPAREN ws* (stepinput ws* (ws* COMMA ws* stepinput)* ws*)? CLOSEPAREN ;
 
-scriptbody : OPENSCRIPT line*? CLOSESCRIPT ;
+scriptlines : line*? ;
+
+scriptbody : OPENSCRIPT scriptlines CLOSESCRIPT ;
 
 freetext : DOLLAR | OPENPAREN | CLOSEPAREN | OPENBRACE | CLOSEBRACE
 	    | OPENBRACKET | CLOSEBRACKET
@@ -58,13 +60,13 @@ freetext : DOLLAR | OPENPAREN | CLOSEPAREN | OPENBRACE | CLOSEBRACE
 	    | FILE | DIRECTORY | STDOUT
 	    | FOR | EACH | IN | DEF | RUN | RETURN | STRUCT | NOTWS ;
 
-line : (freetext | SPACE)* NEWLINE ;
+line : (freetext | SPACE | GREATER)* NEWLINE ;
 
 argument : freetext+;
 
 redirect : GREATER SPACE* argument ;
 
-command : SPACE* argument (SPACE+ argument)* SPACE* redirect? SPACE* (scriptbody | NEWLINE) ;
+command : SPACE* argument (SPACE+ argument)* SPACE* redirect? SPACE* (scriptbody | NEWLINE) (optional_arg | ws)* ;
 
 file_const : FILE ws* OPENPAREN (SQSTRING | DQSTRING) CLOSEPAREN ;
 dir_const : DIRECTORY ws* OPENPAREN (SQSTRING | DQSTRING) CLOSEPAREN ;
@@ -72,6 +74,8 @@ dir_const : DIRECTORY ws* OPENPAREN (SQSTRING | DQSTRING) CLOSEPAREN ;
 const_assignment : name ws* EQ ws* (SQSTRING | DQSTRING | INTEGER | FLOAT | file_const | dir_const) ws*? NEWLINE ;
 
 output_assignment : assignment ;
+
+optional_arg : QUES ws+ argument ws+ symbol NEWLINE ;
 
 returnvar : symbol ;
 toolbody : (attribute | ws)* (const_assignment | ws)* command (output_assignment | ws)* ;

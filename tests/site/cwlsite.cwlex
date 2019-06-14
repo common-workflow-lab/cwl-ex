@@ -4,6 +4,47 @@ def tool makerdfs(schema File, target_path string) {
   targetdir = string(inputs.target_path.match(/^([^/]+)\/[^/]/)[1])
 }
 
+def tool makecontext(schema File, target_path string) {
+  python -mschema_salad --print-jsonld-context $(inputs.schema) > $(inputs.target_path)
+  jsonld_context = File(inputs.target_path)
+  targetdir = string(inputs.target_path.match(/^([^/]+)\/[^/]/)[1])
+}
+
+def tool inheritance(schema File, target_path string) {
+  sh > $(inputs.target_path) <<<
+  schema-salad-tool --print-inheritance-dot "$(inputs.schema.path)" | dot -Tsvg
+>>>
+  svg = File(inputs.target_path)
+  targetdir = string(inputs.target_path.match(/^([^/]+)\/[^/]/)[1])
+}
+
+def tool makedoc(
+  source File,
+  renderlist? string[],
+  redirect? string[],
+  brand string,
+  brandlink string,
+  target string,
+  primtype? string,
+  extra File)
+{
+  schema-salad-doc $(inputs.source) > $(inputs.target)
+    ? --only renderlist
+    ? --redirect redirect
+    ? --brand brand
+    ? --brandlink brandlink
+    ? --primtype primtype
+  html = File(inputs.target)
+  targetdir = string{
+    var m = inputs.target.match(/^([^/]+)\/[^/]/);
+    if (m)
+       return m[1];
+    else
+       return "";
+  }
+  extra_out = File(inputs.extra.path)
+}
+
 def workflow main(
   render struct {
     source File,
@@ -27,6 +68,24 @@ def workflow main(
   (rdfs, targetdir) = makerdfs(schema=$(inputs.schema.schema_in),
                              target_path=$(inputs.schema.rdfs_target)
 			     ) for each schema in schemas
+
+  (jsonld_context, targetdir) = makecontext(schema=$(inputs.schema.schema_in),
+                             target_path=$(inputs.schema.rdfs_target)
+			     ) for each schema in schemas
+
+  (svg, targetdir) = inheritance(schema=$(inputs.schema.schema_in),
+                             target_path=$(inputs.schema.rdfs_target)
+			     ) for each schema in schemas
+
+  (html, targetdir, extra_out) = makedoc(
+     source=$(inputs.rdr.source),
+     target=$(inputs.rdr.target),
+     rdrlist=$(inputs.rdr.renderlist),
+     redirect=$(inputs.rdr.redirect),
+     brandlink=$(inputs.rdr.brandlink),
+     brand=$(inputs.rdr.brandimg),
+     primtype=$(inputs.rdr.primtype),
+     extra=$(inputs.rdr.extra)) for each rdr in render
 
   return (rdfs, targetdir)
 }

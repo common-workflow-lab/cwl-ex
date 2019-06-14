@@ -224,7 +224,33 @@ CwlExListener.prototype.enterCommand = function(ctx) {
     if (ctx.redirect()) {
         top["stdout"] = ctx.redirect().argument().getText();
     }
+    if (ctx.scriptbody()) {
+        top["requirements"].InitialWorkDirRequirement = {
+            listing: [{
+                entryname: "_script",
+                entry: ctx.scriptbody().scriptlines().getText()
+            }]};
+        top["arguments"].push("_script");
+    }
+    this.pushWork("pos", 1);
 }
+
+CwlExListener.prototype.enterOptional_arg = function(ctx) {
+    var pos = this.popWork("pos");
+    this.pushWork("pos", pos+1);
+    var tool = this.workTop("tool");
+    tool.inputs.map((inp) => {
+        if (inp.id == ctx.symbol().getText()) {
+            inp.inputBinding = {};
+            inp.inputBinding.prefix = ctx.argument().getText();
+            inp.inputBinding.position = pos;
+        }
+    });
+};
+
+CwlExListener.prototype.exitCommand = function(ctx) {
+    this.popWork("pos");
+};
 
 CwlExListener.prototype.exitTooldecl = function(ctx) {
     var tool = this.popWork("tool");
@@ -281,6 +307,9 @@ CwlExListener.prototype.enterForeach = function(ctx) {
     var src = ctx.scattersources().symbollist().symbol().map((p) => p.getText());
     this.workTop("step").scatter = inp;
     for (var i = 0; i < inp.length; i++) {
+        if (!this.workTop("step")["in"][inp[i]]) {
+            this.workTop("step")["in"][inp[i]] = {};
+        }
         this.workTop("step")["in"][inp[i]]["source"] = src[i];
     }
 }
