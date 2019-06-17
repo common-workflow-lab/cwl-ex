@@ -17,7 +17,7 @@ jslist : OPENBRACKET javascript CLOSEBRACKET ;
 
 subst : typedecl (jsexpr | jsblock) ;
 
-assignment : symbol ws* EQ ws* subst ws*? NEWLINE ;
+assignment : name ws* EQ ws* (subst | symbol) ws*? NEWLINE ;
 
 workflowdecl : DEF ws+ WORKFLOW ws+ name ws* input_params ws* OPENBRACE workflowbody CLOSEBRACE ;
 
@@ -75,7 +75,10 @@ const_assignment : name ws* EQ ws* (SQSTRING | DQSTRING | INTEGER | FLOAT | file
 
 output_assignment : assignment ;
 
-optional_arg : QUES ws+ argument ws+ symbol NEWLINE ;
+optional_for_bind : symbol ;
+optional_for_over : symbol ;
+
+optional_arg : QUES ws+ argument ws+ (name | FOR ws+ EACH ws+ IN ws+ name)? ws* NEWLINE ;
 
 returnvar : symbol ;
 toolbody : (attribute | ws)* (const_assignment | ws)* command (output_assignment | ws)* ;

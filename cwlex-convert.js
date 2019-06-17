@@ -189,25 +189,34 @@ CwlExListener.prototype.exitConst_assignment = function(ctx) {
 
 CwlExListener.prototype.enterOutput_assignment = function(ctx) {
     var oa = ctx;
-    var out = {"id": oa.assignment().symbol().getText()};
+    var out = {"id": oa.assignment().name().getText()};
     this.pushWork("set_type_on", out);
     top = this.workTop("tool");
     top.outputs.push(out);
 
     var ob = {};
     out["outputBinding"] = ob;
-    out.type = oa.assignment().subst().typedecl().getText();
+    if (oa.assignment().subst()) {
+        out.type = oa.assignment().subst().typedecl().getText();
 
-    if (oa.assignment().subst().jsexpr()) {
-        expr = "$"+oa.assignment().subst().jsexpr().getText();
+        if (oa.assignment().subst().jsexpr()) {
+            expr = "$"+oa.assignment().subst().jsexpr().getText();
+        } else {
+            expr = "$"+oa.assignment().subst().jsblock().getText();
+        }
+        if (out.type == "File" || out.type == "Directory" ||
+            out.type == "File[]" || out.type == "Directory[]") {
+            ob["glob"] = expr;
+        } else {
+            ob["outputEval"] = expr;
+        }
     } else {
-        expr = "$"+oa.assignment().subst().jsblock().getText();
-    }
-    if (out.type == "File" || out.type == "Directory" ||
-        out.type == "File[]" || out.type == "Directory[]") {
-        ob["glob"] = expr;
-    } else {
-        ob["outputEval"] = expr;
+        top.inputs.map((inp) => {
+            if (inp.id == oa.assignment().symbol().getText()) {
+                out.type = inp.type;
+            }
+        });
+        ob["outputEval"] = "$(inputs." + oa.assignment().symbol().getText() + ")";
     }
 };
 
@@ -240,10 +249,25 @@ CwlExListener.prototype.enterOptional_arg = function(ctx) {
     this.pushWork("pos", pos+1);
     var tool = this.workTop("tool");
     tool.inputs.map((inp) => {
-        if (inp.id == ctx.symbol().getText()) {
-            inp.inputBinding = {};
-            inp.inputBinding.prefix = ctx.argument().getText();
+        if (inp.id == ctx.name().getText()) {
+            if (!inp.inputBinding) {
+                inp.inputBinding = {};
+            }
             inp.inputBinding.position = pos;
+            if (ctx.FOR()) {
+                var setbind = (tp) => {
+                    if (tp instanceof Object) {
+                        tp.inputBinding = {prefix: ctx.argument().getText()};
+                    }
+                };
+                if (inp.type instanceof Array) {
+                    inp.type.map((tp) => setbind(tp));
+                } else {
+                    setbind(inp.type);
+                }
+            } else {
+                inp.inputBinding.prefix = ctx.argument().getText();
+            }
         }
     });
 };

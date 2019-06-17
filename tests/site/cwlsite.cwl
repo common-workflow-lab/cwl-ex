@@ -144,8 +144,8 @@
             }
           ],
           "inputBinding": {
-            "prefix": "--only",
-            "position": 1
+            "position": 1,
+            "prefix": "--only"
           }
         },
         {
@@ -154,11 +154,13 @@
             "null",
             {
               "type": "array",
-              "items": "string"
+              "items": "string",
+              "inputBinding": {
+                "prefix": "--redirect"
+              }
             }
           ],
           "inputBinding": {
-            "prefix": "--redirect",
             "position": 2
           }
         },
@@ -166,16 +168,16 @@
           "id": "brand",
           "type": "string",
           "inputBinding": {
-            "prefix": "--brand",
-            "position": 3
+            "position": 3,
+            "prefix": "--brand"
           }
         },
         {
           "id": "brandlink",
           "type": "string",
           "inputBinding": {
-            "prefix": "--brandlink",
-            "position": 4
+            "position": 4,
+            "prefix": "--brandlink"
           }
         },
         {
@@ -189,8 +191,8 @@
             "string"
           ],
           "inputBinding": {
-            "prefix": "--primtype",
-            "position": 5
+            "position": 5,
+            "prefix": "--primtype"
           }
         },
         {
@@ -216,7 +218,7 @@
         {
           "id": "extra_out",
           "outputBinding": {
-            "glob": "$(inputs.extra.path)"
+            "outputEval": "$(inputs.extra)"
           },
           "type": "File"
         }

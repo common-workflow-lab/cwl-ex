@@ -30,7 +30,7 @@ def tool makedoc(
 {
   schema-salad-doc $(inputs.source) > $(inputs.target)
     ? --only renderlist
-    ? --redirect redirect
+    ? --redirect for each in redirect
     ? --brand brand
     ? --brandlink brandlink
     ? --primtype primtype
@@ -42,7 +42,7 @@ def tool makedoc(
     else
        return "";
   }
-  extra_out = File(inputs.extra.path)
+  extra_out = extra
 }
 
 def workflow main(
