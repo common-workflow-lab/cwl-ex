@@ -65,19 +65,19 @@ def workflow main(
   brandimg File
 ) {
 
-  (rdfs, targetdir) = makerdfs(schema=$(inputs.schema.schema_in),
+  (rdfs, rdfstargetdir=targetdir) = makerdfs(schema=$(inputs.schema.schema_in),
                              target_path=$(inputs.schema.rdfs_target)
 			     ) for each schema in schemas
 
-  (jsonld_context, targetdir) = makecontext(schema=$(inputs.schema.schema_in),
+  (jsonld_context, contexttargetdir=targetdir) = makecontext(schema=$(inputs.schema.schema_in),
                              target_path=$(inputs.schema.rdfs_target)
 			     ) for each schema in schemas
 
-  (svg, targetdir) = inheritance(schema=$(inputs.schema.schema_in),
+  (svg, svgtargetdir=targetdir) = inheritance(schema=$(inputs.schema.schema_in),
                              target_path=$(inputs.schema.rdfs_target)
 			     ) for each schema in schemas
 
-  (html, targetdir, extra_out) = makedoc(
+  (html, htmltargetdir=targetdir, extra_out) = makedoc(
      source=$(inputs.rdr.source),
      target=$(inputs.rdr.target),
      rdrlist=$(inputs.rdr.renderlist),
@@ -87,5 +87,31 @@ def workflow main(
      primtype=$(inputs.rdr.primtype),
      extra=$(inputs.rdr.extra)) for each rdr in render
 
-  return (rdfs, targetdir)
+  empty = ""
+
+  doc_out = File{
+    inputs.primary.secondaryFiles = [];
+    for (var i = 0; i < inputs.secondary.length; i++) {
+      var k = inputs.secondary[i];
+      if (inputs.dirs[i] != "") {
+        inputs.primary.secondaryFiles.push({
+            class: "Directory",
+            basename: inputs.dirs[i],
+            listing: [k]
+        });
+      } else {
+        inputs.primary.secondaryFiles.push(k);
+      }
+    }
+    return inputs.primary;
+  } using (
+          primary=html,
+          secondary=merge_flattened(html, rdfs, jsonld_context,
+  	                            brandimg, extra_out, svg),
+          dirs=merge_flattened(htmltargetdir, rdfstargetdir, contexttargetdir,
+  	                       empty, htmltargetdir, svgtargetdir))
+
+  #report = linkchecker(doc_out)
+
+  return doc_out
 }

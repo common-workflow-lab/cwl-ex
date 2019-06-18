@@ -4,8 +4,7 @@ root : (workflowdecl | tooldecl | ws)+ ;
 
 javascript : (jsstring | jsexpr | jsblock | jslist | ws | DOLLAR | COLON
 	   | COMMA | EQ | QUES | GREATER | LESSER | COMMENT | FLOAT | INTEGER
-	   | FILE | DIRECTORY | STDOUT | FOR | EACH | IN | DEF | RUN
-	   | RETURN | STRUCT | NOTWS )*?;
+	   | keyword | NOTWS )*?;
 
 jsstring : SQSTRING | DQSTRING | BQSTRING ;
 
@@ -15,15 +14,11 @@ jsblock : OPENBRACE javascript CLOSEBRACE ;
 
 jslist : OPENBRACKET javascript CLOSEBRACKET ;
 
-subst : typedecl (jsexpr | jsblock) ;
-
-assignment : name ws* EQ ws* (subst | symbol) ws*? NEWLINE ;
-
 workflowdecl : DEF ws+ WORKFLOW ws+ name ws* input_params ws* OPENBRACE workflowbody CLOSEBRACE ;
 
 tooldecl : DEF ws+ TOOL ws+ name ws* input_params ws* OPENBRACE toolbody CLOSEBRACE ;
 
-workflowbodyStatement : (assignment | ws | step | tooldecl ) ;
+workflowbodyStatement : (const_assignment | step | ws) ;
 
 workflowbody : workflowbodyStatement* ws* RETURN ws+ symbolassignlist ws* ;
 
@@ -31,7 +26,19 @@ symbolassign : name | name ws* EQ ws* symbol ;
 
 symbolassignlist : symbol | OPENPAREN ws* symbolassign ws* (COMMA ws* symbolassign)* ws* CLOSEPAREN;
 
-step : symbolassignlist ws* EQ ws* (toolstep | call) ws*? foreach? NEWLINE ;
+linkmerge : (MERGE_NESTED | MERGE_FLATTENED) ws* OPENPAREN ws* symbol (COMMA ws* symbol)* ws* CLOSEPAREN ;
+
+sourceassign : name | name ws* EQ ws* (symbol | linkmerge) ;
+
+sourceassignlist : name | OPENPAREN ws* sourceassign ws* (COMMA ws* sourceassign)* ws* CLOSEPAREN;
+
+using : USING ws+ sourceassignlist ;
+
+typedexpr : typedecl (jsexpr | jsblock) ;
+
+exprstep : typedexpr ;
+
+step : symbolassignlist ws* EQ ws* (exprstep | call) ws* foreach? ws* using? ws* NEWLINE ;
 
 symbollist : symbol ws* (COMMA ws* symbol)* ;
 
@@ -43,7 +50,7 @@ foreach : FOR ws+ EACH ws+ scatterparams ws+ IN ws+ scattersources ;
 
 toolstep : RUN ws+ TOOL ws* stepinputs ws* OPENBRACE ws* toolbody ws* CLOSEBRACE ;
 
-call : symbol ws* stepinputs ws* foreach?;
+call : symbol ws* stepinputs;
 
 stepinput : name | name EQ (symbol | SQSTRING | DQSTRING | INTEGER | FLOAT | DOLLAR jsexpr) ;
 
@@ -56,9 +63,7 @@ scriptbody : OPENSCRIPT scriptlines CLOSESCRIPT ;
 freetext : DOLLAR | OPENPAREN | CLOSEPAREN | OPENBRACE | CLOSEBRACE
 	    | OPENBRACKET | CLOSEBRACKET
             | COLON | COMMA | EQ | QUES | LESSER | COMMENT | OPENSCRIPT
-	    | SQSTRING | DQSTRING | DQSTRING | FLOAT | INTEGER | WORKFLOW | TOOL
-	    | FILE | DIRECTORY | STDOUT
-	    | FOR | EACH | IN | DEF | RUN | RETURN | STRUCT | NOTWS ;
+	    | SQSTRING | DQSTRING | DQSTRING | FLOAT | INTEGER | keyword | NOTWS ;
 
 line : (freetext | SPACE | GREATER)* NEWLINE ;
 
@@ -73,7 +78,7 @@ dir_const : DIRECTORY ws* OPENPAREN (SQSTRING | DQSTRING) CLOSEPAREN ;
 
 const_assignment : name ws* EQ ws* (SQSTRING | DQSTRING | INTEGER | FLOAT | file_const | dir_const) ws*? NEWLINE ;
 
-output_assignment : assignment ;
+output_assignment : name ws* EQ ws* (typedexpr | symbol) ws*? NEWLINE ;
 
 optional_for_bind : symbol ;
 optional_for_over : symbol ;
@@ -85,7 +90,8 @@ toolbody : (attribute | ws)* (const_assignment | ws)* command (output_assignment
 
 name : symbol ;
 structdecl : STRUCT ws* OPENBRACE ws* (param_decl ws* (COMMA ws* param_decl)*)? ws* CLOSEBRACE ;
-typedecl : (symbol | FILE | DIRECTORY | structdecl) (OPENBRACKET CLOSEBRACKET)? ;
+typekeyword : STRING | INT_SYMBOL | FLOAT_SYMBOL | FILE | DIRECTORY;
+typedecl : (typekeyword | structdecl) (OPENBRACKET CLOSEBRACKET)? ;
 
 input_params : param_list ;
 
@@ -93,10 +99,14 @@ param_list : OPENPAREN ws* (param_decl ws* (COMMA ws* param_decl)*)? ws* CLOSEPA
 
 param_decl : name QUES? ws+ typedecl ;
 
-symbolpart : WORKFLOW | TOOL | FILE | DIRECTORY | STDOUT | FOR | EACH | IN | DEF | RUN | RETURN | STRUCT | NOTWS;
+symbolpart : keyword | NOTWS;
 symbol : NOTWS | symbolpart (symbolpart | INTEGER | FLOAT)+ ;
 
 ws : NEWLINE | SPACE | COMMENT ;
+
+keyword : WORKFLOW | TOOL | FILE | DIRECTORY | STDOUT | FOR | EACH | IN
+         | DEF | RUN | RETURN | STRUCT | USING | MERGE_NESTED
+	 | MERGE_FLATTENED | INT_SYMBOL | FLOAT_SYMBOL;
 
 attribute : name COLON ws+ (symbol | FLOAT | INTEGER | OPENBRACE ws* (attribute (COMMA | NEWLINE))* ws* CLOSEBRACE) ;
 
@@ -138,5 +148,11 @@ DEF : 'def' ;
 RUN : 'run' ;
 RETURN : 'return';
 STRUCT : 'struct';
+USING : 'using';
+MERGE_NESTED : 'merge_nested';
+MERGE_FLATTENED: 'merge_flattened';
+STRING : 'string';
+INT_SYMBOL : 'int';
+FLOAT_SYMBOL : 'float';
 
 NOTWS : ~('\n' | ' ' | '\t') ;
