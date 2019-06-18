@@ -1,8 +1,0 @@
-def tool hello (name string) (response File) {
-  echo 'Hello $(inputs.name)!' > response
-  response = File('response')
-}
-
-def workflow main() (response File) {
-  response = hello("Ralphie")
-}

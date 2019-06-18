@@ -12,7 +12,7 @@ def tool makecontext(schema File, target_path string) {
 
 def tool inheritance(schema File, target_path string) {
   sh > $(inputs.target_path) <<<
-  schema-salad-tool --print-inheritance-dot "$(inputs.schema.path)" | dot -Tsvg
+schema-salad-tool --print-inheritance-dot "$(inputs.schema.path)" | dot -Tsvg
 >>>
   svg = File(inputs.target_path)
   targetdir = string(inputs.target_path.match(/^([^/]+)\/[^/]/)[1])
@@ -90,20 +90,23 @@ def workflow main(
   empty = ""
 
   doc_out = File{
-    inputs.primary.secondaryFiles = [];
-    for (var i = 0; i < inputs.secondary.length; i++) {
-      var k = inputs.secondary[i];
-      if (inputs.dirs[i] != "") {
-        inputs.primary.secondaryFiles.push({
+    var primary = inputs.primary[0];
+    var secondary = inputs.secondary.slice(1);
+    var dirs = inputs.dirs.slice(1);
+    primary.secondaryFiles = [];
+    for (var i = 0; i < secondary.length; i++) {
+      var k = secondary[i];
+      if (dirs[i] != "") {
+        primary.secondaryFiles.push({
             class: "Directory",
-            basename: inputs.dirs[i],
+            basename: dirs[i],
             listing: [k]
         });
       } else {
-        inputs.primary.secondaryFiles.push(k);
+        primary.secondaryFiles.push(k);
       }
     }
-    return inputs.primary;
+    return primary;
   } using (
           primary=html,
           secondary=merge_flattened(html, rdfs, jsonld_context,
@@ -111,7 +114,10 @@ def workflow main(
           dirs=merge_flattened(htmltargetdir, rdfstargetdir, contexttargetdir,
   	                       empty, htmltargetdir, svgtargetdir))
 
-  #report = linkchecker(doc_out)
+  #report = run tool (doc_out) {
+  #  checklink "-X(http.*|mailto:.*)" -q $(inputs.doc_out) > linkchecker-report.txt
+  #  report = File("linkchecker-report.txt")
+  #}
 
   return doc_out
 }

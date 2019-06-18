@@ -1,6 +1,3 @@
-waay cool primary
-embedded {"class":"ExpressionTool","inputs":[],"outputs":[{"id":"doc_out","type":"File"}],"expression":"${return {'doc_out': (function(){\n    inputs.primary.secondaryFiles = [];\n    for (var i = 0; i < inputs.secondary.length; i++) {\n      var k = inputs.secondary[i];\n      if (inputs.dirs[i] != \"\") {\n        inputs.primary.secondaryFiles.push({\n            class: \"Directory\",\n            basename: inputs.dirs[i],\n            listing: [k]\n        });\n      } else {\n        inputs.primary.secondaryFiles.push(k);\n      }\n    }\n    return inputs.primary;\n  })()};}"}
-bindings {"render":{"source":"render","type":{"type":"array","items":{"type":"record","fields":[{"name":"source","type":"File"},{"name":"renderlist","type":["null",{"type":"array","items":"string"}]},{"name":"redirect","type":["null",{"type":"array","items":"string"}]},{"name":"target","type":"string"},{"name":"brandlink","type":"string"},{"name":"brandimg","type":"string"},{"name":"primtype","type":["null","string"]},{"name":"extra","type":"File"}]}}},"schemas":{"source":"schemas","type":{"type":"array","items":{"type":"record","fields":[{"name":"schema_in","type":"File"},{"name":"context_target","type":"string"},{"name":"rdfs_target","type":"string"},{"name":"graph_target","type":"string"}]}}},"brandimg":{"source":"brandimg","type":"File"},"rdfs":{"source":"makerdfs/rdfs","type":{"type":"array","items":"File"}},"rdfstargetdir":{"source":"makerdfs/targetdir","type":{"type":"array","items":"string"}},"jsonld_context":{"source":"makecontext/jsonld_context","type":{"type":"array","items":"File"}},"contexttargetdir":{"source":"makecontext/targetdir","type":{"type":"array","items":"string"}},"svg":{"source":"inheritance/svg","type":{"type":"array","items":"File"}},"svgtargetdir":{"source":"inheritance/targetdir","type":{"type":"array","items":"string"}},"html":{"source":"makedoc/html","type":{"type":"array","items":"File"}},"htmltargetdir":{"source":"makedoc/targetdir","type":{"type":"array","items":"string"}},"extra_out":{"source":"makedoc/extra_out","type":{"type":"array","items":"File"}},"empty":{"source":"empty","type":"string"}}
 {
   "$graph": [
     {
@@ -118,7 +115,7 @@ bindings {"render":{"source":"render","type":{"type":"array","items":{"type":"re
           "listing": [
             {
               "entryname": "_script",
-              "entry": "  schema-salad-tool --print-inheritance-dot \"$(inputs.schema.path)\" | dot -Tsvg\n"
+              "entry": "schema-salad-tool --print-inheritance-dot \"$(inputs.schema.path)\" | dot -Tsvg\n"
             }
           ]
         }
@@ -481,14 +478,36 @@ bindings {"render":{"source":"render","type":{"type":"array","items":{"type":"re
           "id": "main_5",
           "run": {
             "class": "ExpressionTool",
-            "inputs": [],
+            "inputs": [
+              {
+                "id": "primary",
+                "type": {
+                  "type": "array",
+                  "items": "File"
+                }
+              },
+              {
+                "id": "secondary",
+                "type": {
+                  "type": "array",
+                  "items": "File"
+                }
+              },
+              {
+                "id": "dirs",
+                "type": {
+                  "type": "array",
+                  "items": "string"
+                }
+              }
+            ],
             "outputs": [
               {
                 "id": "doc_out",
                 "type": "File"
               }
             ],
-            "expression": "${return {'doc_out': (function(){\n    inputs.primary.secondaryFiles = [];\n    for (var i = 0; i < inputs.secondary.length; i++) {\n      var k = inputs.secondary[i];\n      if (inputs.dirs[i] != \"\") {\n        inputs.primary.secondaryFiles.push({\n            class: \"Directory\",\n            basename: inputs.dirs[i],\n            listing: [k]\n        });\n      } else {\n        inputs.primary.secondaryFiles.push(k);\n      }\n    }\n    return inputs.primary;\n  })()};}"
+            "expression": "${return {'doc_out': (function(){\n    var primary = inputs.primary[0];\n    var secondary = inputs.secondary.slice(1);\n    var dirs = inputs.dirs.slice(1);\n    primary.secondaryFiles = [];\n    for (var i = 0; i < secondary.length; i++) {\n      var k = secondary[i];\n      if (dirs[i] != \"\") {\n        primary.secondaryFiles.push({\n            class: \"Directory\",\n            basename: dirs[i],\n            listing: [k]\n        });\n      } else {\n        primary.secondaryFiles.push(k);\n      }\n    }\n    return primary;\n  })()};}"
           }
         }
       ]

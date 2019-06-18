@@ -316,7 +316,6 @@ CwlExListener.prototype.exitStep = function(ctx) {
 
         var tp;
         this.workTop("embedded")["outputs"].map((op) => {
-            //console.log("examine
             if (op["id"] == [m[1]]) {
                 tp = op["type"];
             }
@@ -422,33 +421,40 @@ CwlExListener.prototype.enterSourceassignlist = function(ctx) {
     }
 };
 
+addUnique = (items, a) => {
+    for (var i = 0; i < items.length; i++) {
+        if (items[i] == a) {
+            return;
+        }
+    }
+    items.push(a);
+};
+
 CwlExListener.prototype.enterSourceassign = function(ctx) {
     if (ctx.symbol()) {
         this.workTop("step")["in"][ctx.name().getText()] = this.workTop("bindings")[ctx.symbol().getText()].source;
         if (this.workTop("inline")) {
-            console.log("waay cool "+ctx.name().getText());
-            console.log("embedded "+JSON.stringify(this.workTop("embedded")));
-            console.log("bindings "+JSON.stringify(this.workTop("bindings")));
-            this.workTop("embedded")["inputs"][ctx.name().getText()] = this.workTop("bindings")[ctx.symbol().getText()].type;
+            var bind = this.workTop("bindings")[ctx.symbol().getText()];
+            this.workTop("embedded")["inputs"].push({id: ctx.name().getText(), type: bind.type});
         }
     } else if (ctx.linkmerge()) {
         var src = {};
-        var types = [];
-        if (ctx.linkmerge().MERGE_NESTED) {
+        var items = [];
+        if (ctx.linkmerge().MERGE_NESTED()) {
             src.linkMerge = "merge_nested";
             ctx.linkmerge().symbol().map((s) => {
                 var t = this.workTop("bindings")[s.getText()].type;
-                types.push(t);
+                addUnique(items, t);
             });
         }
-        if (ctx.linkmerge().MERGE_FLATTENED) {
+        if (ctx.linkmerge().MERGE_FLATTENED()) {
             src.linkMerge = "merge_flattened";
             ctx.linkmerge().symbol().map((s) => {
                 var t = this.workTop("bindings")[s.getText()].type;
                 if ((t instanceof Object) && t.type == "array") {
-                    types.push(t.items);
+                    addUnique(items, t.items);
                 } else {
-                    types.push(t);
+                    addUnique(items, t);
                 }
             });
         }
@@ -456,12 +462,16 @@ CwlExListener.prototype.enterSourceassign = function(ctx) {
         this.workTop("step")["in"][ctx.name().getText()] = src;
 
         if (this.workTop("inline")) {
-            this.workTop("embedded")["inputs"][ctx.name().getText()] = types;
+            if (items.length == 1) {
+                items = items[0];
+            }
+            this.workTop("embedded").inputs.push({id: ctx.name().getText(),
+                                                  type: {"type": "array", "items": items}});
         }
     } else {
         this.workTop("step")["in"][ctx.name().getText()] = this.workTop("bindings")[ctx.name().getText()].source;
         if (this.workTop("inline")) {
-            this.workTop("embedded")["inputs"][ctx.name().getText()] = this.workTop("bindings")[ctx.name().getText()].type;
+            this.workTop("embedded").inputs.push({id: ctx.name().getText(), type: this.workTop("bindings")[ctx.name().getText()].type});
         }
     }
 };
