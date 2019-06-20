@@ -342,6 +342,11 @@
           "id": "doc_out",
           "type": "File",
           "outputSource": "main_5/doc_out"
+        },
+        {
+          "id": "report",
+          "type": "File",
+          "outputSource": "main_6/report"
         }
       ],
       "steps": [
@@ -448,7 +453,9 @@
         },
         {
           "in": {
-            "primary": "makedoc/html",
+            "primary": {
+              "source": "makedoc/html"
+            },
             "secondary": {
               "linkMerge": "merge_flattened",
               "source": [
@@ -508,6 +515,45 @@
               }
             ],
             "expression": "${return {'doc_out': (function(){\n    var primary = inputs.primary[0];\n    var secondary = inputs.secondary.slice(1);\n    var dirs = inputs.dirs.slice(1);\n    primary.secondaryFiles = [];\n    for (var i = 0; i < secondary.length; i++) {\n      var k = secondary[i];\n      if (dirs[i] != \"\") {\n        primary.secondaryFiles.push({\n            class: \"Directory\",\n            basename: dirs[i],\n            listing: [k]\n        });\n      } else {\n        primary.secondaryFiles.push(k);\n      }\n    }\n    return primary;\n  })()};}"
+          }
+        },
+        {
+          "in": {
+            "doc_out": {
+              "source": "main_5/doc_out"
+            }
+          },
+          "out": [
+            "report"
+          ],
+          "id": "main_6",
+          "run": {
+            "class": "CommandLineTool",
+            "inputs": [
+              {
+                "id": "doc_out",
+                "type": "File"
+              }
+            ],
+            "outputs": [
+              {
+                "id": "report",
+                "outputBinding": {
+                  "glob": "$(\"linkchecker-report.txt\")"
+                },
+                "type": "File"
+              }
+            ],
+            "requirements": {
+              "InlineJavascriptRequirement": {}
+            },
+            "arguments": [
+              "checklink",
+              "-X(http.*|mailto:.*)",
+              "-q",
+              "$(inputs.doc_out)"
+            ],
+            "stdout": "linkchecker-report.txt"
           }
         }
       ]

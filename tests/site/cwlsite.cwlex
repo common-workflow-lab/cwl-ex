@@ -107,17 +107,16 @@ def workflow main(
       }
     }
     return primary;
-  } using (
-          primary=html,
-          secondary=merge_flattened(html, rdfs, jsonld_context,
-  	                            brandimg, extra_out, svg),
-          dirs=merge_flattened(htmltargetdir, rdfstargetdir, contexttargetdir,
-  	                       empty, htmltargetdir, svgtargetdir))
+  }(primary=html,
+    secondary=merge_flattened(html, rdfs, jsonld_context,
+                              brandimg, extra_out, svg),
+    dirs=merge_flattened(htmltargetdir, rdfstargetdir, contexttargetdir,
+                         empty, htmltargetdir, svgtargetdir))
 
-  #report = run tool (doc_out) {
-  #  checklink "-X(http.*|mailto:.*)" -q $(inputs.doc_out) > linkchecker-report.txt
-  #  report = File("linkchecker-report.txt")
-  #}
+  report = run tool (doc_out) {
+    checklink -X(http.*|mailto:.*) -q $(inputs.doc_out) > linkchecker-report.txt
+    report = File("linkchecker-report.txt")
+  }
 
-  return doc_out
+  return (doc_out, report)
 }

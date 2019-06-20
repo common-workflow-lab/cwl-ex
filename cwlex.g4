@@ -28,17 +28,11 @@ symbolassignlist : symbol | OPENPAREN ws* symbolassign ws* (COMMA ws* symbolassi
 
 linkmerge : (MERGE_NESTED | MERGE_FLATTENED) ws* OPENPAREN ws* symbol (COMMA ws* symbol)* ws* CLOSEPAREN ;
 
-sourceassign : name | name ws* EQ ws* (symbol | linkmerge) ;
-
-sourceassignlist : name | OPENPAREN ws* sourceassign ws* (COMMA ws* sourceassign)* ws* CLOSEPAREN;
-
-using : USING ws+ sourceassignlist ;
-
 typedexpr : typedecl (jsexpr | jsblock) ;
 
-exprstep : typedexpr ;
+exprstep : typedexpr ws* stepinputs ;
 
-step : symbolassignlist ws* EQ ws* (exprstep | call) ws* foreach? ws* using? ws* NEWLINE ;
+step : symbolassignlist ws* EQ ws* (exprstep | toolstep | call) ws* foreach? ws* NEWLINE ;
 
 symbollist : symbol ws* (COMMA ws* symbol)* ;
 
@@ -52,7 +46,7 @@ toolstep : RUN ws+ TOOL ws* stepinputs ws* OPENBRACE ws* toolbody ws* CLOSEBRACE
 
 call : symbol ws* stepinputs;
 
-stepinput : name | name EQ (symbol | SQSTRING | DQSTRING | INTEGER | FLOAT | DOLLAR jsexpr) ;
+stepinput : name | name ws* EQ ws* (symbol | SQSTRING | DQSTRING | INTEGER | FLOAT | DOLLAR jsexpr | DOLLAR jsblock | linkmerge) ;
 
 stepinputs : OPENPAREN ws* (stepinput ws* (ws* COMMA ws* stepinput)* ws*)? CLOSEPAREN ;
 

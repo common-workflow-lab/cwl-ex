@@ -189,10 +189,20 @@ CwlExListener.prototype.exitConst_assignment = function(ctx) {
 
 CwlExListener.prototype.enterOutput_assignment = function(ctx) {
     var oa = ctx;
-    var out = {"id": oa.name().getText()};
-    this.pushWork("set_type_on", out);
     top = this.workTop("tool");
-    top.outputs.push(out);
+
+    var out;
+    for (var i = 0; i < top.outputs.length; i++) {
+        if (top.outputs[i].id == oa.name().getText()) {
+            out = top.outputs[i];
+            break
+        }
+    }
+    if (!out) {
+        out = {"id": oa.name().getText()};
+        top.outputs.push(out);
+    }
+    this.pushWork("set_type_on", out);
 
     var ob = {};
     out["outputBinding"] = ob;
@@ -289,7 +299,7 @@ CwlExListener.prototype.enterStep = function(ctx) {
     this.pushWork("step", step);
     var stepcount = this.popWork("stepcount");
     this.pushWork("stepcount", stepcount+1);
-    if (ctx.exprstep()) {
+    if (ctx.exprstep() || ctx.toolstep()) {
         this.pushWork("inline", true);
     }
 };
@@ -328,7 +338,7 @@ CwlExListener.prototype.exitStep = function(ctx) {
     });
     this.workTop("tool").steps.push(step);
     this.popWork("embedded");
-    if (ctx.exprstep()) {
+    if (ctx.exprstep() || ctx.toolstep()) {
         this.popWork("inline");
     }
 };
@@ -358,23 +368,60 @@ CwlExListener.prototype.enterStepinput = function(ctx) {
     var workin = this.workTop("step")["in"];
     var link = {};
     if (ctx.symbol()) {
-        link["source"] = ctx.symbol().getText();
-    }
-    if (ctx.SQSTRING()) {
+        var bind = this.workTop("bindings")[ctx.symbol().getText()];
+        link.source = bind.source;
+        if (this.workTop("inline")) {
+            this.workTop("embedded")["inputs"].push({id: ctx.name().getText(), type: bind.type});
+        }
+    } else if (ctx.SQSTRING()) {
         link["default"] = extractString(ctx);
-    }
-    if (ctx.DQSTRING()) {
+    } else if (ctx.DQSTRING()) {
         link["default"] = extractString(ctx);
-    }
-    if (ctx.INTEGER()) {
+    } else if (ctx.INTEGER()) {
         link["default"] = parseInt(ctx.INTEGER().getText());
-    }
-    if (ctx.FLOAT()) {
+    } else if (ctx.FLOAT()) {
         link["float"] = parseInt(ctx.FLOAT().getText());
-    }
-    if (ctx.jsexpr()) {
+    } else if (ctx.jsexpr()) {
         link["valueFrom"] = '$'+ctx.jsexpr().getText();
+    } else if (ctx.jsblock()) {
+        link["valueFrom"] = '$'+ctx.jsblock().getText();
+    } else if (ctx.linkmerge()) {
+        var items = [];
+        if (ctx.linkmerge().MERGE_NESTED()) {
+            link.linkMerge = "merge_nested";
+            ctx.linkmerge().symbol().map((s) => {
+                var t = this.workTop("bindings")[s.getText()].type;
+                addUnique(items, t);
+            });
+        }
+        if (ctx.linkmerge().MERGE_FLATTENED()) {
+            link.linkMerge = "merge_flattened";
+            ctx.linkmerge().symbol().map((s) => {
+                var t = this.workTop("bindings")[s.getText()].type;
+                if ((t instanceof Object) && t.type == "array") {
+                    addUnique(items, t.items);
+                } else {
+                    addUnique(items, t);
+                }
+            });
+        }
+        link.source = ctx.linkmerge().symbol().map((s) => this.workTop("bindings")[s.getText()].source);
+
+        if (this.workTop("inline")) {
+            if (items.length == 1) {
+                items = items[0];
+            }
+            this.workTop("embedded").inputs.push({id: ctx.name().getText(),
+                                                  type: {"type": "array", "items": items}});
+        }
+    } else {
+        var bind = this.workTop("bindings")[ctx.name().getText()];
+        link.source = bind.source;
+        if (this.workTop("inline")) {
+            this.workTop("embedded")["inputs"].push({id: ctx.name().getText(), type: bind.type});
+        }
     }
+
     workin[ctx.name().getText()] = link;
 };
 
@@ -412,13 +459,34 @@ CwlExListener.prototype.exitExprstep = function(ctx) {
     this.popWork("set_type_on");
 };
 
-CwlExListener.prototype.enterSourceassignlist = function(ctx) {
-    if (ctx.symbol()) {
-        this.workTop("step")["in"][ctx.name().getText()] = this.workTop("bindings")[ctx.name().getText()].source;
-        if (this.workTop("inline")) {
-            this.workTop("embedded")["inputs"][ctx.name().getText()] = this.workTop("bindings")[ctx.name().getText()].type;
+CwlExListener.prototype.enterToolstep = function(ctx) {
+    this.workTop("step")["id"] = this.workTop("tool")["id"] + "_" + this.workTop("stepcount");
+    var rvar = this.workTop("symbolassign")[0][1];
+    var r = {
+        "id": rvar
+    };
+    var tool = {
+        "class": "CommandLineTool",
+        "inputs": [],
+        "outputs": [r],
+        requirements: {
+            "InlineJavascriptRequirement": {}
         }
-    }
+    };
+    this.workTop("step")["run"] = tool;
+
+    this.pushWork("tool", tool);
+    this.pushWork("namefield", "id");
+    this.pushWork("add_fields_to", tool.inputs);
+    this.pushWork("set_type_on", r);
+    this.pushWork("embedded", tool);
+};
+
+CwlExListener.prototype.exitToolstep = function(ctx) {
+    this.popWork("tool");
+    this.popWork("namefield");
+    this.popWork("add_fields_to");
+    this.popWork("set_type_on");
 };
 
 addUnique = (items, a) => {
@@ -431,49 +499,7 @@ addUnique = (items, a) => {
 };
 
 CwlExListener.prototype.enterSourceassign = function(ctx) {
-    if (ctx.symbol()) {
-        this.workTop("step")["in"][ctx.name().getText()] = this.workTop("bindings")[ctx.symbol().getText()].source;
-        if (this.workTop("inline")) {
-            var bind = this.workTop("bindings")[ctx.symbol().getText()];
-            this.workTop("embedded")["inputs"].push({id: ctx.name().getText(), type: bind.type});
-        }
-    } else if (ctx.linkmerge()) {
-        var src = {};
-        var items = [];
-        if (ctx.linkmerge().MERGE_NESTED()) {
-            src.linkMerge = "merge_nested";
-            ctx.linkmerge().symbol().map((s) => {
-                var t = this.workTop("bindings")[s.getText()].type;
-                addUnique(items, t);
-            });
-        }
-        if (ctx.linkmerge().MERGE_FLATTENED()) {
-            src.linkMerge = "merge_flattened";
-            ctx.linkmerge().symbol().map((s) => {
-                var t = this.workTop("bindings")[s.getText()].type;
-                if ((t instanceof Object) && t.type == "array") {
-                    addUnique(items, t.items);
-                } else {
-                    addUnique(items, t);
-                }
-            });
-        }
-        src.source = ctx.linkmerge().symbol().map((s) => this.workTop("bindings")[s.getText()].source);
-        this.workTop("step")["in"][ctx.name().getText()] = src;
 
-        if (this.workTop("inline")) {
-            if (items.length == 1) {
-                items = items[0];
-            }
-            this.workTop("embedded").inputs.push({id: ctx.name().getText(),
-                                                  type: {"type": "array", "items": items}});
-        }
-    } else {
-        this.workTop("step")["in"][ctx.name().getText()] = this.workTop("bindings")[ctx.name().getText()].source;
-        if (this.workTop("inline")) {
-            this.workTop("embedded").inputs.push({id: ctx.name().getText(), type: this.workTop("bindings")[ctx.name().getText()].type});
-        }
-    }
 };
 
 var convert = (input) => {
