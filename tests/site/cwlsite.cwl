@@ -377,7 +377,7 @@
               "source": "schemas"
             },
             "target_path": {
-              "valueFrom": "$(inputs.schema.rdfs_target)"
+              "valueFrom": "$(inputs.schema.context_target)"
             }
           },
           "out": [
@@ -397,7 +397,7 @@
               "source": "schemas"
             },
             "target_path": {
-              "valueFrom": "$(inputs.schema.rdfs_target)"
+              "valueFrom": "$(inputs.schema.graph_target)"
             }
           },
           "out": [

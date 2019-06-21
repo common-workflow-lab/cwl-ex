@@ -70,11 +70,11 @@ def workflow main(
 			     ) for each schema in schemas
 
   (jsonld_context, contexttargetdir=targetdir) = makecontext(schema=$(inputs.schema.schema_in),
-                             target_path=$(inputs.schema.rdfs_target)
+                             target_path=$(inputs.schema.context_target)
 			     ) for each schema in schemas
 
   (svg, svgtargetdir=targetdir) = inheritance(schema=$(inputs.schema.schema_in),
-                             target_path=$(inputs.schema.rdfs_target)
+                             target_path=$(inputs.schema.graph_target)
 			     ) for each schema in schemas
 
   (html, htmltargetdir=targetdir, extra_out) = makedoc(
