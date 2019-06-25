@@ -387,14 +387,14 @@ CwlExListener.prototype.exitStep = function(ctx) {
     });
     this.workTop("tool").steps.push(step);
     this.popWork("embedded");
-    if (ctx.exprstep() || ctx.inlinetool() || ctx.inlineworkflow) {
+    if (ctx.exprstep() || ctx.inlinetool() || ctx.inlineworkflow()) {
         this.popWork("inline");
     }
 };
 
 CwlExListener.prototype.enterCall = function(ctx) {
     this.workTop("step")["id"] = ctx.symbol().getText();
-    this.workTop("step")["run"] = "#"+ctx.symbol().getText();
+    this.workTop("step")["run"] = this.graph[ctx.symbol().getText()]["id"];
     this.pushWork("embedded", this.graph[ctx.symbol().getText()]);
 };
 
@@ -600,8 +600,15 @@ var convert = (input) => {
   var myls = new CwlExListener();
     antlr4.tree.ParseTreeWalker.DEFAULT.walk(myls, tree);
 
+    var graph = {};
+    Object.keys(myls.graph).map((g) => {
+        if (!myls.graph[g]["_external"]) {
+            graph[g] = myls.graph[g];
+        }
+    });
+
     var r;
-    var values = Object.values(myls.graph);
+    var values = Object.values(graph);
     if (values.length == 1) {
         r = values[0];
     } else {
@@ -612,3 +619,13 @@ var convert = (input) => {
 };
 
 exports.convert = convert;
+
+
+CwlExListener.prototype.enterImport_decl = function(ctx) {
+    var fs = require('fs');
+    var id = extractString(ctx);
+    var input = fs.readFileSync(id, 'utf8');
+    var graph = convert(input);
+    graph["id"] = "#"+ctx.name().getText();
+    this.graph[ctx.name().getText()] = graph;
+};

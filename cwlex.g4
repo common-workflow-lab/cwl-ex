@@ -1,6 +1,6 @@
 grammar cwlex;
 
-root : (workflowdecl | tooldecl | ws)+ ;
+root : (workflowdecl | tooldecl | import_decl | ws)+ ;
 
 javascript : (jsstring | jsexpr | jsblock | jslist | ws | DOLLAR | COLON
 	   | COMMA | EQ | QUES | GREATER | LESSER | COMMENT | FLOAT | INTEGER
@@ -115,9 +115,12 @@ ws : NEWLINE | SPACE | COMMENT ;
 
 keyword : WORKFLOW | TOOL | FILE | DIRECTORY | STDOUT | FOR | EACH | IN
          | DEF | RUN | RETURN | STRUCT | USING | MERGE_NESTED
-	 | MERGE_FLATTENED | INT_SYMBOL | FLOAT_SYMBOL | REQUIREMENTS | HINTS;
+	 | MERGE_FLATTENED | INT_SYMBOL | FLOAT_SYMBOL | REQUIREMENTS
+	 | HINTS | IMPORT | AS;
 
 attribute : name COLON ws+ (symbol | FLOAT | INTEGER | OPENBRACE ws* (attribute (COMMA | NEWLINE))* ws* CLOSEBRACE) ;
+
+import_decl : IMPORT ws+ (SQSTRING | DQSTRING) ws+ AS ws+ name ws* NEWLINE ;
 
 DOLLAR : '$' ;
 OPENPAREN : '(' ;
@@ -165,5 +168,7 @@ INT_SYMBOL : 'int';
 FLOAT_SYMBOL : 'float';
 REQUIREMENTS : 'requirements';
 HINTS : 'hints';
+IMPORT : 'import';
+AS : 'as';
 
 NOTWS : ~('\n' | ' ' | '\t') ;
