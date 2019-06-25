@@ -1,0 +1,4 @@
+def tool echo(msg string) {
+  echo $(inputs.msg) > msg.txt
+  m = File("msg.txt")
+}

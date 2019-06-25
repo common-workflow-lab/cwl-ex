@@ -620,12 +620,35 @@ var convert = (input) => {
 
 exports.convert = convert;
 
+salad = (graph) => {
+    ["inputs", "outputs"].map((k) => {
+        var lst = [];
+        Object.keys(graph[k]).map((id) => {
+            var g = graph[k][id];
+            if (typeof(g) === "string") {
+                g = {"type": g};
+            }
+            g["id"] = id;
+            lst.push(g);
+        })
+        graph[k] = lst;
+    });
+    return graph;
+};
 
 CwlExListener.prototype.enterImport_decl = function(ctx) {
     var fs = require('fs');
     var id = extractString(ctx);
     var input = fs.readFileSync(id, 'utf8');
-    var graph = convert(input);
+    var yaml = require('js-yaml');
+
+    var graph;
+    try {
+        graph = salad(yaml.safeLoad(input));
+    } catch (error) {
+        graph = convert(input);
+    }
+
     graph["id"] = "#"+ctx.name().getText();
     this.graph[ctx.name().getText()] = graph;
 };
