@@ -6,5 +6,7 @@ Work in progress.
 
 TODO:
 
-* revisit syntax
+* import regular CWL YAML
+* npm package
+* go back over some syntax decisions
 * documentation
