@@ -65,9 +65,12 @@ def workflow main(
   brandimg File
 ) {
 
-  (rdfs, rdfstargetdir=targetdir) = makerdfs(schema=$(inputs.schema.schema_in),
+  (rdfs, rdfstargetdir=targetdir) = run workflow (schemas) {
+    (rdfs, targetdir) = makerdfs(schema=$(inputs.schema.schema_in),
                              target_path=$(inputs.schema.rdfs_target)
 			     ) for each schema in schemas
+    return (rdfs, targetdir)
+  }
 
   (jsonld_context, contexttargetdir=targetdir) = makecontext(schema=$(inputs.schema.schema_in),
                              target_path=$(inputs.schema.context_target)

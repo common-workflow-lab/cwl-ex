@@ -32,7 +32,7 @@ typedexpr : typedecl (jsexpr | jsblock) ;
 
 exprstep : typedexpr ws* stepinputs ;
 
-step : symbolassignlist ws* EQ ws* (exprstep | toolstep | call) ws* foreach? ws* NEWLINE ;
+step : symbolassignlist ws* EQ ws* (exprstep | inlinetool | inlineworkflow | call) ws* foreach? ws* NEWLINE ;
 
 symbollist : symbol ws* (COMMA ws* symbol)* ;
 
@@ -42,7 +42,11 @@ scattersources : symbollist ;
 
 foreach : FOR ws+ EACH ws+ scatterparams ws+ IN ws+ scattersources ;
 
-toolstep : RUN ws+ TOOL ws* stepinputs ws* OPENBRACE ws* toolbody ws* CLOSEBRACE ;
+inlinetool : RUN ws+ TOOL ws* stepinputs ws* OPENBRACE ws* toolbody ws* CLOSEBRACE ;
+
+inlineworkflowbody : workflowbody ;
+
+inlineworkflow : RUN ws+ WORKFLOW ws* stepinputs ws* OPENBRACE ws* inlineworkflowbody ws* CLOSEBRACE ;
 
 call : symbol ws* stepinputs;
 

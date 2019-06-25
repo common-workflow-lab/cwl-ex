@@ -37,7 +37,8 @@ CwlExListener.prototype.enterWorkflowdecl = function(ctx) {
             "ScatterFeatureRequirement": {},
             "StepInputExpressionRequirement": {},
             "MultipleInputFeatureRequirement": {},
-            "InlineJavascriptRequirement": {}
+            "InlineJavascriptRequirement": {},
+            "SubworkflowFeatureRequirement": {}
         },
         inputs: [],
         outputs: [],
@@ -299,7 +300,7 @@ CwlExListener.prototype.enterStep = function(ctx) {
     this.pushWork("step", step);
     var stepcount = this.popWork("stepcount");
     this.pushWork("stepcount", stepcount+1);
-    if (ctx.exprstep() || ctx.toolstep()) {
+    if (ctx.exprstep() || ctx.inlinetool() || ctx.inlineworkflow()) {
         this.pushWork("inline", true);
     }
 };
@@ -338,7 +339,7 @@ CwlExListener.prototype.exitStep = function(ctx) {
     });
     this.workTop("tool").steps.push(step);
     this.popWork("embedded");
-    if (ctx.exprstep() || ctx.toolstep()) {
+    if (ctx.exprstep() || ctx.inlinetool() || ctx.inlineworkflow) {
         this.popWork("inline");
     }
 };
@@ -459,16 +460,16 @@ CwlExListener.prototype.exitExprstep = function(ctx) {
     this.popWork("set_type_on");
 };
 
-CwlExListener.prototype.enterToolstep = function(ctx) {
+CwlExListener.prototype.enterInlinetool = function(ctx) {
     this.workTop("step")["id"] = this.workTop("tool")["id"] + "_" + this.workTop("stepcount");
-    var rvar = this.workTop("symbolassign")[0][1];
+    /*var rvar = this.workTop("symbolassign")[0][1];
     var r = {
         "id": rvar
-    };
+    };*/
     var tool = {
         "class": "CommandLineTool",
         "inputs": [],
-        "outputs": [r],
+        "outputs": [],
         requirements: {
             "InlineJavascriptRequirement": {}
         }
@@ -478,15 +479,35 @@ CwlExListener.prototype.enterToolstep = function(ctx) {
     this.pushWork("tool", tool);
     this.pushWork("namefield", "id");
     this.pushWork("add_fields_to", tool.inputs);
-    this.pushWork("set_type_on", r);
+    //this.pushWork("set_type_on", r);
     this.pushWork("embedded", tool);
 };
 
-CwlExListener.prototype.exitToolstep = function(ctx) {
+CwlExListener.prototype.exitInlinetool = function(ctx) {
     this.popWork("tool");
     this.popWork("namefield");
     this.popWork("add_fields_to");
     this.popWork("set_type_on");
+};
+
+CwlExListener.prototype.enterInlineworkflow = function(ctx) {
+    this.enterInlinetool(ctx);
+    this.workTop("tool")["class"] = "Workflow";
+    this.workTop("tool")["steps"] = [];
+};
+
+CwlExListener.prototype.exitInlineworkflow = function(ctx) {
+    this.exitInlinetool(ctx);
+};
+
+CwlExListener.prototype.enterInlineworkflowbody = function(ctx) {
+    this.pushWork("bindings", {});
+    this.pushWork("stepcount", 0);
+};
+
+CwlExListener.prototype.exitInlineworkflowbody = function(ctx) {
+    this.popWork("bindings");
+    this.popWork("stepcount");
 };
 
 addUnique = (items, a) => {

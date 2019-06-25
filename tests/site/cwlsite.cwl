@@ -239,7 +239,8 @@
         "ScatterFeatureRequirement": {},
         "StepInputExpressionRequirement": {},
         "MultipleInputFeatureRequirement": {},
-        "InlineJavascriptRequirement": {}
+        "InlineJavascriptRequirement": {},
+        "SubworkflowFeatureRequirement": {}
       },
       "inputs": [
         {
@@ -352,23 +353,90 @@
       "steps": [
         {
           "in": {
-            "schema": {
-              "valueFrom": "$(inputs.schema.schema_in)",
+            "schemas": {
               "source": "schemas"
-            },
-            "target_path": {
-              "valueFrom": "$(inputs.schema.rdfs_target)"
             }
           },
           "out": [
             "rdfs",
             "targetdir"
           ],
-          "id": "makerdfs",
-          "run": "#makerdfs",
-          "scatter": [
-            "schema"
-          ]
+          "id": "main_1",
+          "run": {
+            "class": "Workflow",
+            "inputs": [
+              {
+                "id": "schemas",
+                "type": {
+                  "type": "array",
+                  "items": {
+                    "type": "record",
+                    "fields": [
+                      {
+                        "name": "schema_in",
+                        "type": "File"
+                      },
+                      {
+                        "name": "context_target",
+                        "type": "string"
+                      },
+                      {
+                        "name": "rdfs_target",
+                        "type": "string"
+                      },
+                      {
+                        "name": "graph_target",
+                        "type": "string"
+                      }
+                    ]
+                  }
+                }
+              }
+            ],
+            "outputs": [
+              {
+                "id": "rdfs",
+                "type": {
+                  "type": "array",
+                  "items": "File"
+                },
+                "outputSource": "makerdfs/rdfs"
+              },
+              {
+                "id": "targetdir",
+                "type": {
+                  "type": "array",
+                  "items": "string"
+                },
+                "outputSource": "makerdfs/targetdir"
+              }
+            ],
+            "requirements": {
+              "InlineJavascriptRequirement": {}
+            },
+            "steps": [
+              {
+                "in": {
+                  "schema": {
+                    "valueFrom": "$(inputs.schema.schema_in)",
+                    "source": "schemas"
+                  },
+                  "target_path": {
+                    "valueFrom": "$(inputs.schema.rdfs_target)"
+                  }
+                },
+                "out": [
+                  "rdfs",
+                  "targetdir"
+                ],
+                "id": "makerdfs",
+                "run": "#makerdfs",
+                "scatter": [
+                  "schema"
+                ]
+              }
+            ]
+          }
         },
         {
           "in": {
@@ -460,7 +528,7 @@
               "linkMerge": "merge_flattened",
               "source": [
                 "makedoc/html",
-                "makerdfs/rdfs",
+                "main_1/rdfs",
                 "makecontext/jsonld_context",
                 "brandimg",
                 "makedoc/extra_out",
@@ -471,7 +539,7 @@
               "linkMerge": "merge_flattened",
               "source": [
                 "makedoc/targetdir",
-                "makerdfs/targetdir",
+                "main_1/targetdir",
                 "makecontext/targetdir",
                 "empty",
                 "makedoc/targetdir",
