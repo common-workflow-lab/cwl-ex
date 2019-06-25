@@ -196,13 +196,20 @@ CwlExListener.prototype.enterConst_value = function(ctx) {
         };
     }
     if (ca.struct_const()) {
-        newinput.type = "Any";
-        newinput["default"] = {};
+        // gets set in enterStruct_const
+        return;
     }
     if (ca.list_const()) {
         newinput.type = "Any";
         newinput["default"] = [];
     }
+    this.pushWork("const_value", newinput);
+};
+
+CwlExListener.prototype.enterStruct_const = function(ctx) {
+    var newinput = {};
+    newinput.type = "Any";
+    newinput["default"] = {};
     this.pushWork("const_value", newinput);
 };
 
@@ -558,6 +565,30 @@ addUnique = (items, a) => {
 CwlExListener.prototype.enterSourceassign = function(ctx) {
 
 };
+
+CwlExListener.prototype.exitReq_decl = function(ctx) {
+    var reqs = this.workTop("reqs");
+    var r = {};
+    if (ctx.struct_const()) {
+        r = this.popWork("const_value")["default"];
+    }
+    r["class"] = ctx.symbol().getText();
+    reqs.push(r);
+}
+
+CwlExListener.prototype.enterReqs = function(ctx) {
+    this.pushWork("reqs", []);
+}
+
+CwlExListener.prototype.exitReqs = function(ctx) {
+    var reqs = this.popWork("reqs");
+    if (ctx.REQUIREMENTS()) {
+        this.workTop("tool")["requirements"] = reqs;
+    }
+    if (ctx.HINTS()) {
+        this.workTop("tool")["hints"] = reqs;
+    }
+}
 
 var convert = (input) => {
   var chars = new antlr4.InputStream(input);

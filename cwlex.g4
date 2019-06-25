@@ -18,7 +18,11 @@ workflowdecl : DEF ws+ WORKFLOW ws+ name ws* input_params ws* OPENBRACE workflow
 
 tooldecl : DEF ws+ TOOL ws+ name ws* input_params ws* OPENBRACE toolbody CLOSEBRACE ;
 
-workflowbodyStatement : (const_assignment | step | ws) ;
+req_decl : (symbol | symbol ws+ struct_const) ws* NEWLINE ;
+
+reqs : (REQUIREMENTS | HINTS) ws+ OPENBRACE ws* (req_decl ws*)* CLOSEBRACE ;
+
+workflowbodyStatement : (const_assignment | step | reqs | ws) ;
 
 workflowbody : workflowbodyStatement* ws* RETURN ws+ symbolassignlist ws* ;
 
@@ -91,7 +95,7 @@ optional_for_over : symbol ;
 optional_arg : QUES ws+ argument ws+ (name | FOR ws+ EACH ws+ IN ws+ name)? ws* NEWLINE ;
 
 returnvar : symbol ;
-toolbody : (attribute | ws)* (const_assignment | ws)* command (output_assignment | ws)* ;
+toolbody : (reqs | ws)* (attribute | ws)* (const_assignment | ws)* command (output_assignment | ws)* ;
 
 name : symbol ;
 structdecl : STRUCT ws* OPENBRACE ws* (param_decl ws* (COMMA ws* param_decl ws*)*)? ws* CLOSEBRACE ;
@@ -111,7 +115,7 @@ ws : NEWLINE | SPACE | COMMENT ;
 
 keyword : WORKFLOW | TOOL | FILE | DIRECTORY | STDOUT | FOR | EACH | IN
          | DEF | RUN | RETURN | STRUCT | USING | MERGE_NESTED
-	 | MERGE_FLATTENED | INT_SYMBOL | FLOAT_SYMBOL;
+	 | MERGE_FLATTENED | INT_SYMBOL | FLOAT_SYMBOL | REQUIREMENTS | HINTS;
 
 attribute : name COLON ws+ (symbol | FLOAT | INTEGER | OPENBRACE ws* (attribute (COMMA | NEWLINE))* ws* CLOSEBRACE) ;
 
@@ -159,5 +163,7 @@ MERGE_FLATTENED: 'merge_flattened';
 STRING : 'string';
 INT_SYMBOL : 'int';
 FLOAT_SYMBOL : 'float';
+REQUIREMENTS : 'requirements';
+HINTS : 'hints';
 
 NOTWS : ~('\n' | ' ' | '\t') ;
