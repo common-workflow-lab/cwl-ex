@@ -3,12 +3,12 @@
   "id": "antlr",
   "inputs": [
     {
-      "id": "file",
       "type": "File",
       "default": {
         "class": "File",
         "location": "cwlex.g4"
-      }
+      },
+      "id": "file"
     }
   ],
   "outputs": [

@@ -74,7 +74,14 @@ command : SPACE* argument (SPACE+ argument)* SPACE* redirect? SPACE* (scriptbody
 file_const : FILE ws* OPENPAREN (SQSTRING | DQSTRING) CLOSEPAREN ;
 dir_const : DIRECTORY ws* OPENPAREN (SQSTRING | DQSTRING) CLOSEPAREN ;
 
-const_assignment : name ws* EQ ws* (SQSTRING | DQSTRING | INTEGER | FLOAT | file_const | dir_const) ws*? NEWLINE ;
+struct_field_name : (SQSTRING | DQSTRING | symbol) ;
+struct_field : struct_field_name ws* COLON ws* const_value ;
+struct_const : OPENBRACE ws* struct_field? ws* (COMMA ws* struct_field ws*)* CLOSEBRACE ;
+list_entry : const_value ;
+list_const : OPENBRACKET ws* list_entry? ws* (COMMA ws* list_entry ws*)* CLOSEBRACKET ;
+const_value  : SQSTRING | DQSTRING | INTEGER | FLOAT | file_const | dir_const | struct_const | list_const ;
+
+const_assignment : name ws* EQ ws* const_value ws*? NEWLINE ;
 
 output_assignment : name ws* EQ ws* (typedexpr | symbol) ws*? NEWLINE ;
 
@@ -87,7 +94,7 @@ returnvar : symbol ;
 toolbody : (attribute | ws)* (const_assignment | ws)* command (output_assignment | ws)* ;
 
 name : symbol ;
-structdecl : STRUCT ws* OPENBRACE ws* (param_decl ws* (COMMA ws* param_decl)*)? ws* CLOSEBRACE ;
+structdecl : STRUCT ws* OPENBRACE ws* (param_decl ws* (COMMA ws* param_decl ws*)*)? ws* CLOSEBRACE ;
 typekeyword : STRING | INT_SYMBOL | FLOAT_SYMBOL | FILE | DIRECTORY;
 typedecl : (typekeyword | structdecl) (OPENBRACKET CLOSEBRACKET)? ;
 

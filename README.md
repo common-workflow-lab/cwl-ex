@@ -6,5 +6,4 @@ Work in progress.
 
 TODO:
 
-* struct constants
 * hints/requirements

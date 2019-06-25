@@ -1,0 +1,12 @@
+def workflow main() {
+  intval = 12
+  floatval = 1.2
+  strval = "foobar"
+  fileval = File("hello.txt")
+  listval = ["a", "b", {"c": [13, "d"]}]
+  structval = {a: "b",
+               c: {"d": "e"},
+	       f: ["g", 12]
+	      }
+  return (iv=intval)
+}

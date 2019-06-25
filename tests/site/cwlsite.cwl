@@ -333,9 +333,9 @@
           "type": "File"
         },
         {
-          "id": "empty",
           "type": "string",
-          "default": ""
+          "default": "",
+          "id": "empty"
         }
       ],
       "outputs": [

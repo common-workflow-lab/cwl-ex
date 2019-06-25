@@ -135,6 +135,12 @@ CwlExListener.prototype.enterTooldecl = function(ctx) {
 
 extractString = (ctx) => {
     var txt = ctx.getText();
+    if (ctx.SQSTRING && ctx.SQSTRING()) {
+        txt = ctx.SQSTRING().getText();
+    }
+    if (ctx.DQSTRING && ctx.DQSTRING()) {
+        txt = ctx.DQSTRING().getText();
+    }
     var ret = "";
     var curq = "";
     for (var i = 0; i < txt.length; i++) {
@@ -156,13 +162,9 @@ extractString = (ctx) => {
     return ret;
 };
 
-CwlExListener.prototype.enterConst_assignment = function(ctx) {
-    var top = this.workTop("tool");
+CwlExListener.prototype.enterConst_value = function(ctx) {
     var ca = ctx;
-
-    var newinput = {"id": ctx.name().getText()};
-    top.inputs.push(newinput);
-
+    var newinput = {};
     if (ca.SQSTRING()) {
         newinput.type = "string";
         newinput["default"] = extractString(ca);
@@ -193,11 +195,38 @@ CwlExListener.prototype.enterConst_assignment = function(ctx) {
             "location": extractString(ca.file_const())
         };
     }
+    if (ca.struct_const()) {
+        newinput.type = "Any";
+        newinput["default"] = {};
+    }
+    if (ca.list_const()) {
+        newinput.type = "Any";
+        newinput["default"] = [];
+    }
+    this.pushWork("const_value", newinput);
+};
 
-    this.workTop("bindings")[newinput.id] = {source: newinput.id, type: newinput.type};
+CwlExListener.prototype.exitStruct_field = function(ctx) {
+    var inner = this.popWork("const_value");
+    var outer = this.workTop("const_value");
+    outer["default"][extractString(ctx.struct_field_name())] = inner["default"];
+};
+
+CwlExListener.prototype.exitList_entry = function(ctx) {
+    var inner = this.popWork("const_value");
+    var outer = this.workTop("const_value");
+    outer["default"].push(inner["default"]);
 };
 
 CwlExListener.prototype.exitConst_assignment = function(ctx) {
+    var top = this.workTop("tool");
+    var ca = ctx;
+
+    var newinput = this.popWork("const_value");
+    newinput["id"] = ctx.name().getText();
+    top.inputs.push(newinput);
+
+    this.workTop("bindings")[newinput.id] = {source: newinput.id, type: newinput.type};
 };
 
 CwlExListener.prototype.enterOutput_assignment = function(ctx) {

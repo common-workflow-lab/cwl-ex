@@ -1,0 +1,3 @@
+def tool main() {
+  echo "she said \"hello\"" 'then she said \'goodbye\''
+}
