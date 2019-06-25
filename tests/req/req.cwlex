@@ -1,0 +1,14 @@
+def tool main() {
+  requirements {
+    InitialWorkDirRequirement {
+      listing: [{
+        entry: "hello",
+	entryname: "hello.txt"
+      }]
+    }
+  }
+  hints {
+    ShellCommandRequirement
+  }
+  cat hello.txt
+}
