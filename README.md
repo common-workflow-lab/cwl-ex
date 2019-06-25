@@ -6,4 +6,5 @@ Work in progress.
 
 TODO:
 
-* hints/requirements
+* revisit syntax
+* documentation
