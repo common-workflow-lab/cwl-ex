@@ -134,14 +134,26 @@ CwlExListener.prototype.enterTooldecl = function(ctx) {
 };
 
 extractString = (ctx) => {
-    var txt;
-    if (ctx.SQSTRING()) {
-        txt = ctx.SQSTRING().getText();
+    var txt = ctx.getText();
+    var ret = "";
+    var curq = "";
+    for (var i = 0; i < txt.length; i++) {
+        if ((txt[i] == '"' || txt[i] == "'") && curq == "") {
+            curq = txt[i];
+            continue;
+        }
+        if (txt[i] == curq) {
+            curq = "";
+            continue;
+        }
+        if (txt[i] == "\\") {
+            ret += txt[i+1];
+            i += 1;
+            continue;
+        }
+        ret += txt[i];
     }
-    if (ctx.DQSTRING()) {
-        txt = ctx.DQSTRING().getText();
-    }
-    return txt.substr(1, txt.length-2);
+    return ret;
 };
 
 CwlExListener.prototype.enterConst_assignment = function(ctx) {
@@ -239,7 +251,7 @@ CwlExListener.prototype.enterCommand = function(ctx) {
     var top = this.workTop("tool");
     top["arguments"] = [];
     ctx.argument().map((arg) => {
-        top["arguments"].push(arg.getText());
+        top["arguments"].push(extractString(arg));
     });
     if (ctx.redirect()) {
         top["stdout"] = ctx.redirect().argument().getText();
@@ -462,10 +474,6 @@ CwlExListener.prototype.exitExprstep = function(ctx) {
 
 CwlExListener.prototype.enterInlinetool = function(ctx) {
     this.workTop("step")["id"] = this.workTop("tool")["id"] + "_" + this.workTop("stepcount");
-    /*var rvar = this.workTop("symbolassign")[0][1];
-    var r = {
-        "id": rvar
-    };*/
     var tool = {
         "class": "CommandLineTool",
         "inputs": [],
@@ -479,7 +487,6 @@ CwlExListener.prototype.enterInlinetool = function(ctx) {
     this.pushWork("tool", tool);
     this.pushWork("namefield", "id");
     this.pushWork("add_fields_to", tool.inputs);
-    //this.pushWork("set_type_on", r);
     this.pushWork("embedded", tool);
 };
 

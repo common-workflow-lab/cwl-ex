@@ -6,7 +6,5 @@ Work in progress.
 
 TODO:
 
-* inline tool / workflow definitions
 * struct constants
 * hints/requirements
-* quoting in command lines

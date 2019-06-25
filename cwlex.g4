@@ -127,8 +127,8 @@ COMMENT : ('#' NEWLINE) | ('#' ~('!') .*? NEWLINE) ;
 OPENSCRIPT : '<<<\n';
 CLOSESCRIPT : '>>>\n';
 
-SQSTRING: '\'' .*? '\'';
-DQSTRING: '"' .*? '"';
+SQSTRING: '\'' (~'\'' | '\\' '\'')*? '\'';
+DQSTRING: '"' (~'"' | '\\' '"')*? '"';
 BQSTRING: '`' .*? '`';
 
 FLOAT: '-'? ('0'..'9')+ '.' ('0'..'9')+ ;
