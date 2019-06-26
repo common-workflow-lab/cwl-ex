@@ -1,9 +1,10 @@
+'use strict';
 const antlr4 = require('antlr4/index');
 const cwlexLexer = require('./cwlexLexer');
 const cwlexParser = require('./cwlexParser');
 const cwlexListener = require('./cwlexListener').cwlexListener;
 
-CwlExListener = function(baseurl) {
+var CwlExListener = function(baseurl) {
     this.graph = {};
     this.current = [];
     this.baseurl = baseurl;
@@ -134,7 +135,7 @@ CwlExListener.prototype.enterTooldecl = function(ctx) {
     this.pushWork("bindings", {});
 };
 
-extractString = (ctx) => {
+var extractString = (ctx) => {
     var txt = ctx.getText();
     if (ctx.SQSTRING && ctx.SQSTRING()) {
         txt = ctx.SQSTRING().getText();
@@ -554,7 +555,7 @@ CwlExListener.prototype.exitInlineworkflowbody = function(ctx) {
     this.popWork("stepcount");
 };
 
-addUnique = (items, a) => {
+var addUnique = (items, a) => {
     for (var i = 0; i < items.length; i++) {
         if (items[i] == a) {
             return;
@@ -621,7 +622,7 @@ var convert = (input, baseurl) => {
 
 exports.convert = convert;
 
-salad = (graph) => {
+var salad = (graph) => {
     ["inputs", "outputs"].map((k) => {
         var lst = [];
         Object.keys(graph[k]).map((id) => {
