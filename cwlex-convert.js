@@ -3,9 +3,10 @@ const cwlexLexer = require('./cwlexLexer');
 const cwlexParser = require('./cwlexParser');
 const cwlexListener = require('./cwlexListener').cwlexListener;
 
-CwlExListener = function() {
+CwlExListener = function(baseurl) {
     this.graph = {};
     this.current = [];
+    this.baseurl = baseurl;
     cwlexListener.call(this); // inherit default listener
     return this;
 };
@@ -590,14 +591,14 @@ CwlExListener.prototype.exitReqs = function(ctx) {
     }
 }
 
-var convert = (input) => {
+var convert = (input, baseurl) => {
   var chars = new antlr4.InputStream(input);
   var lexer = new cwlexLexer.cwlexLexer(chars);
   var tokens  = new antlr4.CommonTokenStream(lexer);
   var parser = new cwlexParser.cwlexParser(tokens);
   parser.buildParseTrees = true;
   var tree = parser.root();
-  var myls = new CwlExListener();
+  var myls = new CwlExListener(baseurl);
     antlr4.tree.ParseTreeWalker.DEFAULT.walk(myls, tree);
 
     var graph = {};
@@ -639,6 +640,9 @@ salad = (graph) => {
 CwlExListener.prototype.enterImport_decl = function(ctx) {
     var fs = require('fs');
     var id = extractString(ctx);
+
+//    this.baseurl.split('/').slice(0, -1) + {
+
     var input = fs.readFileSync(id, 'utf8');
     var yaml = require('js-yaml');
 

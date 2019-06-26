@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const cwlexConverter = require('./cwlex-convert');
 var fs = require('fs');
 

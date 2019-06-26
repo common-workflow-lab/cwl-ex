@@ -1,0 +1,29 @@
+{
+  "name": "cwl-ex",
+  "version": "1.0.0",
+  "description": "CWL experimental grammar",
+  "main": "cwlex-convert.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "./cwlex-tests.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/common-workflow-language/cwl-ex.git"
+  },
+  "author": "Peter Amstutz",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/common-workflow-language/cwl-ex/issues"
+  },
+  "homepage": "https://github.com/common-workflow-language/cwl-ex",
+  "dependencies": {
+    "antlr4": "^4.5.3",
+    "js-yaml": "^3.13.1"
+  },
+    "bin": {
+        "cwlex": "./cwlex.js"
+    }
+}
