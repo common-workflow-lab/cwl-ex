@@ -23,7 +23,7 @@
     "antlr4": "^4.5.3",
     "js-yaml": "^3.13.1"
   },
-    "bin": {
-        "cwlex": "./cwlex.js"
-    }
+  "bin": {
+    "cwlex": "./cwlex.js"
+  }
 }

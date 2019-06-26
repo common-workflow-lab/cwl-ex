@@ -240,7 +240,7 @@ CwlExListener.prototype.exitConst_assignment = function(ctx) {
 
 CwlExListener.prototype.enterOutput_assignment = function(ctx) {
     var oa = ctx;
-    top = this.workTop("tool");
+    var top = this.workTop("tool");
 
     var out;
     for (var i = 0; i < top.outputs.length; i++) {
@@ -260,6 +260,7 @@ CwlExListener.prototype.enterOutput_assignment = function(ctx) {
     if (oa.typedexpr()) {
         out.type = oa.typedexpr().typedecl().getText();
 
+        var expr;
         if (oa.typedexpr().jsexpr()) {
             expr = "$"+oa.typedexpr().jsexpr().getText();
         } else {
