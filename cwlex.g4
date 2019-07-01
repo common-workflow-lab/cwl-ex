@@ -95,7 +95,7 @@ optional_for_over : symbol ;
 optional_arg : QUES ws+ argument ws+ (name | FOR ws+ EACH ws+ IN ws+ name)? ws* NEWLINE ;
 
 returnvar : symbol ;
-toolbody : (reqs | ws)* (attribute | ws)* (const_assignment | ws)* command (output_assignment | ws)* ;
+toolbody : (reqs | ws)* command (output_assignment | ws)* ;
 
 name : symbol ;
 structdecl : STRUCT ws* OPENBRACE ws* (param_decl ws* (COMMA ws* param_decl ws*)*)? ws* CLOSEBRACE ;
@@ -106,7 +106,7 @@ input_params : param_list ;
 
 param_list : OPENPAREN ws* (param_decl ws* (COMMA ws* param_decl)*)? ws* CLOSEPAREN ;
 
-param_decl : name QUES? ws+ typedecl ;
+param_decl : name QUES? ws+ typedecl | name ws* EQ ws* const_value;
 
 symbolpart : keyword | NOTWS;
 symbol : NOTWS | symbolpart (symbolpart | INTEGER | FLOAT)+ ;
@@ -117,8 +117,6 @@ keyword : WORKFLOW | TOOL | FILE | DIRECTORY | STDOUT | FOR | EACH | IN
          | DEF | RUN | RETURN | STRUCT | USING | MERGE_NESTED
 	 | MERGE_FLATTENED | INT_SYMBOL | FLOAT_SYMBOL | REQUIREMENTS
 	 | HINTS | IMPORT | AS;
-
-attribute : name COLON ws+ (symbol | FLOAT | INTEGER | OPENBRACE ws* (attribute (COMMA | NEWLINE))* ws* CLOSEBRACE) ;
 
 import_decl : IMPORT ws+ (SQSTRING | DQSTRING) ws+ AS ws+ name ws* NEWLINE ;
 

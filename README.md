@@ -6,6 +6,5 @@ Work in progress.
 
 TODO:
 
-* npm package
 * go back over some syntax decisions
 * documentation

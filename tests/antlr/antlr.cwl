@@ -1,14 +1,22 @@
 {
+  "arguments": [
+    "antlr4",
+    "-Dlanguage=JavaScript",
+    "-o",
+    ".",
+    "$(inputs.file)"
+  ],
   "class": "CommandLineTool",
+  "cwlVersion": "v1.0",
   "id": "antlr",
   "inputs": [
     {
-      "type": "File",
       "default": {
         "class": "File",
         "location": "cwlex.g4"
       },
-      "id": "file"
+      "id": "file",
+      "type": "File"
     }
   ],
   "outputs": [
@@ -18,20 +26,13 @@
         "glob": "$(\"*.js\")"
       },
       "type": {
-        "type": "array",
-        "items": "File"
+        "items": "File",
+        "type": "array"
       }
     }
   ],
   "requirements": {
-    "InlineJavascriptRequirement": {}
-  },
-  "arguments": [
-    "antlr4",
-    "-Dlanguage=JavaScript",
-    "-o",
-    ".",
-    "$(inputs.file)"
-  ],
-  "cwlVersion": "v1.0"
+    "InlineJavascriptRequirement": {
+    }
+  }
 }

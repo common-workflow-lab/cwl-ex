@@ -66,6 +66,11 @@ CwlExListener.prototype.exitParam_decl = function(ctx) {
     if (ctx.QUES()) {
         tp.type = ["null", tp.type];
     }
+    if (ctx.const_value()) {
+        var cv = this.popWork("const_value");
+        tp.type = cv.type;
+        tp["default"] = cv["default"];
+    }
     if (this.workTop("namefield") == "id" && this.workTop("tool")["class"] == "Workflow") {
         this.workTop("bindings")[ctx.name().getText()] = {"source": ctx.name().getText(), "type": tp.type};
     }
