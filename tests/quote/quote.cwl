@@ -1,15 +1,26 @@
 {
-  "class": "CommandLineTool",
-  "id": "main",
-  "inputs": [],
-  "outputs": [],
-  "requirements": {
-    "InlineJavascriptRequirement": {}
-  },
   "arguments": [
     "echo",
     "she said \"hello\"",
     "then she said 'goodbye'"
   ],
-  "cwlVersion": "v1.0"
+  "class": "CommandLineTool",
+  "cwlVersion": "v1.0",
+  "id": "main",
+  "inputs": [
+  ],
+  "outputs": [
+    {
+      "id": "out",
+      "outputBinding": {
+        "glob": "$(\"output.txt\")"
+      },
+      "type": "File"
+    }
+  ],
+  "requirements": {
+    "InlineJavascriptRequirement": {
+    }
+  },
+  "stdout": "output.txt"
 }

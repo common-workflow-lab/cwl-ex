@@ -8,5 +8,6 @@ def workflow main() {
                c: {"d": "e"},
 	       f: ["g", 12]
 	      }
-  return (iv=intval)
+  return intval as iv,
+         floatval as fv
 }

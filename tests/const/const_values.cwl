@@ -1,39 +1,32 @@
 {
   "class": "Workflow",
+  "cwlVersion": "v1.0",
   "id": "main",
-  "requirements": {
-    "ScatterFeatureRequirement": {},
-    "StepInputExpressionRequirement": {},
-    "MultipleInputFeatureRequirement": {},
-    "InlineJavascriptRequirement": {},
-    "SubworkflowFeatureRequirement": {}
-  },
   "inputs": [
     {
-      "type": "int",
       "default": 12,
-      "id": "intval"
+      "id": "intval",
+      "type": "int"
     },
     {
-      "type": "float",
       "default": 1.2,
-      "id": "floatval"
+      "id": "floatval",
+      "type": "float"
     },
     {
-      "type": "string",
       "default": "foobar",
-      "id": "strval"
+      "id": "strval",
+      "type": "string"
     },
     {
-      "type": "File",
       "default": {
         "class": "File",
         "location": "hello.txt"
       },
-      "id": "fileval"
+      "id": "fileval",
+      "type": "File"
     },
     {
-      "type": "Any",
       "default": [
         "a",
         "b",
@@ -44,10 +37,10 @@
           ]
         }
       ],
-      "id": "listval"
+      "id": "listval",
+      "type": "Any"
     },
     {
-      "type": "Any",
       "default": {
         "a": "b",
         "c": {
@@ -58,16 +51,34 @@
           12
         ]
       },
-      "id": "structval"
+      "id": "structval",
+      "type": "Any"
     }
   ],
   "outputs": [
     {
       "id": "iv",
-      "type": "int",
-      "outputSource": "intval"
+      "outputSource": "intval",
+      "type": "int"
+    },
+    {
+      "id": "fv",
+      "outputSource": "floatval",
+      "type": "float"
     }
   ],
-  "steps": [],
-  "cwlVersion": "v1.0"
+  "requirements": {
+    "InlineJavascriptRequirement": {
+    },
+    "MultipleInputFeatureRequirement": {
+    },
+    "ScatterFeatureRequirement": {
+    },
+    "StepInputExpressionRequirement": {
+    },
+    "SubworkflowFeatureRequirement": {
+    }
+  },
+  "steps": [
+  ]
 }

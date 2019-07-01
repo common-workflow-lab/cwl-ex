@@ -1,7 +1,12 @@
 {
   "$graph": [
     {
+      "arguments": [
+        "echo",
+        "$(inputs.msg)"
+      ],
       "class": "CommandLineTool",
+      "cwlVersion": "v1.0",
       "id": "#echo1",
       "inputs": [
         {
@@ -19,65 +24,68 @@
         }
       ],
       "requirements": {
-        "InlineJavascriptRequirement": {}
+        "InlineJavascriptRequirement": {
+        }
       },
+      "stdout": "msg.txt"
+    },
+    {
       "arguments": [
         "echo",
         "$(inputs.msg)"
       ],
-      "stdout": "msg.txt",
-      "cwlVersion": "v1.0"
-    },
-    {
-      "cwlVersion": "v1.0",
       "class": "CommandLineTool",
+      "cwlVersion": "v1.0",
+      "id": "#echo2",
       "inputs": [
         {
-          "type": "string",
-          "id": "msg"
+          "id": "msg",
+          "type": "string"
         }
       ],
       "outputs": [
         {
-          "type": "File",
+          "id": "m",
           "outputBinding": {
             "glob": "msg.txt"
           },
-          "id": "m"
+          "type": "File"
         }
       ],
-      "stdout": "msg.txt",
-      "arguments": [
-        "echo",
-        "$(inputs.msg)"
-      ],
-      "id": "#echo2"
+      "stdout": "msg.txt"
     },
     {
       "class": "Workflow",
       "id": "main",
-      "requirements": {
-        "ScatterFeatureRequirement": {},
-        "StepInputExpressionRequirement": {},
-        "MultipleInputFeatureRequirement": {},
-        "InlineJavascriptRequirement": {},
-        "SubworkflowFeatureRequirement": {}
-      },
-      "inputs": [],
+      "inputs": [
+      ],
       "outputs": [
         {
           "id": "m1",
-          "type": "File",
-          "outputSource": "echo1/m"
+          "outputSource": "echo1/m",
+          "type": "File"
         },
         {
           "id": "m2",
-          "type": "File",
-          "outputSource": "echo2/m"
+          "outputSource": "echo2/m",
+          "type": "File"
         }
       ],
+      "requirements": {
+        "InlineJavascriptRequirement": {
+        },
+        "MultipleInputFeatureRequirement": {
+        },
+        "ScatterFeatureRequirement": {
+        },
+        "StepInputExpressionRequirement": {
+        },
+        "SubworkflowFeatureRequirement": {
+        }
+      },
       "steps": [
         {
+          "id": "echo1",
           "in": {
             "msg": {
               "default": "foo"
@@ -86,10 +94,10 @@
           "out": [
             "m"
           ],
-          "id": "echo1",
           "run": "#echo1"
         },
         {
+          "id": "echo2",
           "in": {
             "msg": {
               "default": "bar"
@@ -98,7 +106,6 @@
           "out": [
             "m"
           ],
-          "id": "echo2",
           "run": "#echo2"
         }
       ]

@@ -1,21 +1,21 @@
 def tool makerdfs(schema File, target_path string) {
   python -mschema_salad --print-rdfs $(inputs.schema) > $(inputs.target_path)
-  rdfs = File(inputs.target_path)
-  targetdir = string(inputs.target_path.match(/^([^/]+)\/[^/]/)[1])
+  return File(inputs.target_path) as rdfs,
+         string(inputs.target_path.match(/^([^/]+)\/[^/]/)[1]) as targetdir
 }
 
 def tool makecontext(schema File, target_path string) {
   python -mschema_salad --print-jsonld-context $(inputs.schema) > $(inputs.target_path)
-  jsonld_context = File(inputs.target_path)
-  targetdir = string(inputs.target_path.match(/^([^/]+)\/[^/]/)[1])
+  return File(inputs.target_path) as jsonld_context,
+         string(inputs.target_path.match(/^([^/]+)\/[^/]/)[1]) as targetdir
 }
 
 def tool inheritance(schema File, target_path string) {
   sh > $(inputs.target_path) <<<
 schema-salad-tool --print-inheritance-dot "$(inputs.schema.path)" | dot -Tsvg
 >>>
-  svg = File(inputs.target_path)
-  targetdir = string(inputs.target_path.match(/^([^/]+)\/[^/]/)[1])
+  return File(inputs.target_path) as svg,
+         string(inputs.target_path.match(/^([^/]+)\/[^/]/)[1]) as targetdir
 }
 
 def tool makedoc(
@@ -34,15 +34,15 @@ def tool makedoc(
     ? --brand brand
     ? --brandlink brandlink
     ? --primtype primtype
-  html = File(inputs.target)
-  targetdir = string{
+  return File(inputs.target) as html,
+         string{
     var m = inputs.target.match(/^([^/]+)\/[^/]/);
     if (m)
        return m[1];
     else
        return "";
-  }
-  extra_out = extra
+  } as targetdir,
+       extra as extra_out
 }
 
 def workflow main(
@@ -62,25 +62,26 @@ def workflow main(
     rdfs_target string,
     graph_target string
   }[],
-  brandimg File
+  brandimg File,
+  empty = ""
 ) {
 
-  (rdfs, rdfstargetdir=targetdir) = run workflow (schemas) {
-    (rdfs, targetdir) = makerdfs(schema=$(inputs.schema.schema_in),
+  rdfs, targetdir as rdfstargetdir = run workflow (schemas) {
+    rdfs, targetdir = makerdfs(schema=$(inputs.schema.schema_in),
                              target_path=$(inputs.schema.rdfs_target)
 			     ) for each schema in schemas
-    return (rdfs, targetdir)
+    return rdfs, targetdir
   }
 
-  (jsonld_context, contexttargetdir=targetdir) = makecontext(schema=$(inputs.schema.schema_in),
+  jsonld_context, targetdir as contexttargetdir = makecontext(schema=$(inputs.schema.schema_in),
                              target_path=$(inputs.schema.context_target)
 			     ) for each schema in schemas
 
-  (svg, svgtargetdir=targetdir) = inheritance(schema=$(inputs.schema.schema_in),
+  svg, targetdir as svgtargetdir = inheritance(schema=$(inputs.schema.schema_in),
                              target_path=$(inputs.schema.graph_target)
 			     ) for each schema in schemas
 
-  (html, htmltargetdir=targetdir, extra_out) = makedoc(
+  html, targetdir as htmltargetdir, extra_out = makedoc(
      source=$(inputs.rdr.source),
      target=$(inputs.rdr.target),
      rdrlist=$(inputs.rdr.renderlist),
@@ -89,8 +90,6 @@ def workflow main(
      brand=$(inputs.rdr.brandimg),
      primtype=$(inputs.rdr.primtype),
      extra=$(inputs.rdr.extra)) for each rdr in render
-
-  empty = ""
 
   doc_out = File{
     var primary = inputs.primary[0];
@@ -118,8 +117,8 @@ def workflow main(
 
   report = run tool (doc_out) {
     checklink -X(http.*|mailto:.*) -q $(inputs.doc_out) > linkchecker-report.txt
-    report = File("linkchecker-report.txt")
+    return File("linkchecker-report.txt") as report
   }
 
-  return (doc_out, report)
+  return doc_out, report
 }

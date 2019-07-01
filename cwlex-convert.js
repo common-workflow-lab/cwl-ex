@@ -34,7 +34,7 @@ CwlExListener.prototype.popWork = function(s) {
 CwlExListener.prototype.enterWorkflowdecl = function(ctx) {
     var wf = {
         "class": "Workflow",
-        "id": ctx.name().getText(),
+        "id": "#"+ctx.name().getText(),
         "requirements": {
             "ScatterFeatureRequirement": {},
             "StepInputExpressionRequirement": {},
@@ -104,7 +104,7 @@ CwlExListener.prototype.exitTypedecl = function(ctx) {
 
 CwlExListener.prototype.exitWorkflowdecl = function(ctx) {
     var wf = this.popWork("tool");
-    this.graph[wf.id] = wf;
+    this.graph[wf.id.substr(1)] = wf;
     this.popWork("add_fields_to");
     this.popWork("namefield");
     this.popWork("bindings", {});
@@ -126,7 +126,7 @@ CwlExListener.prototype.exitWorkflowbody = function(ctx) {
 CwlExListener.prototype.enterTooldecl = function(ctx) {
     var tool = {
         "class": "CommandLineTool",
-        "id": ctx.name().getText(),
+        "id": "#"+ctx.name().getText(),
         inputs: [],
         outputs: [],
         requirements: {
@@ -247,15 +247,22 @@ CwlExListener.prototype.enterOutput_assignment = function(ctx) {
     var oa = ctx;
     var top = this.workTop("tool");
 
+    var name;
+    if (oa.name()) {
+        name = oa.name().getText();
+    } else {
+        name = oa.symbol().getText();
+    }
+
     var out;
     for (var i = 0; i < top.outputs.length; i++) {
-        if (top.outputs[i].id == oa.name().getText()) {
+        if (top.outputs[i].id == name) {
             out = top.outputs[i];
             break
         }
     }
     if (!out) {
-        out = {"id": oa.name().getText()};
+        out = {"id": name};
         top.outputs.push(out);
     }
     this.pushWork("set_type_on", out);
@@ -267,7 +274,12 @@ CwlExListener.prototype.enterOutput_assignment = function(ctx) {
 
         var expr;
         if (oa.typedexpr().jsexpr()) {
-            expr = "$"+oa.typedexpr().jsexpr().getText();
+            var txt = oa.typedexpr().jsexpr().getText();
+            if (/^\(["'].*["']\)$/.test(txt)) {
+                expr = txt.substr(2, txt.length-4);
+            } else {
+                expr = "$"+txt;
+            }
         } else {
             expr = "$"+oa.typedexpr().jsblock().getText();
         }
@@ -345,7 +357,7 @@ CwlExListener.prototype.exitCommand = function(ctx) {
 
 CwlExListener.prototype.exitTooldecl = function(ctx) {
     var tool = this.popWork("tool");
-    this.graph[tool.id] = tool;
+    this.graph[tool.id.substr(1)] = tool;
     this.popWork("namefield");
     this.popWork("bindings");
 }
@@ -358,12 +370,6 @@ CwlExListener.prototype.enterStep = function(ctx) {
     this.pushWork("stepcount", stepcount+1);
     if (ctx.exprstep() || ctx.inlinetool() || ctx.inlineworkflow()) {
         this.pushWork("inline", true);
-    }
-};
-
-CwlExListener.prototype.enterSymbolassignlist = function(ctx) {
-    if (ctx.symbol()) {
-        this.workTop("symbolassign").push([ctx.symbol().getText(), ctx.symbol().getText()]);
     }
 };
 
@@ -483,7 +489,7 @@ CwlExListener.prototype.enterStepinput = function(ctx) {
 };
 
 CwlExListener.prototype.enterExprstep = function(ctx) {
-    this.workTop("step")["id"] = this.workTop("tool")["id"] + "_" + this.workTop("stepcount");
+    this.workTop("step")["id"] = this.workTop("tool")["id"].substr(1) + "_" + this.workTop("stepcount");
     var rvar = this.workTop("symbolassign")[0][1];
     var r = {
         "id": rvar
@@ -517,7 +523,7 @@ CwlExListener.prototype.exitExprstep = function(ctx) {
 };
 
 CwlExListener.prototype.enterInlinetool = function(ctx) {
-    this.workTop("step")["id"] = this.workTop("tool")["id"] + "_" + this.workTop("stepcount");
+    this.workTop("step")["id"] = this.workTop("tool")["id"].substr(1) + "_" + this.workTop("stepcount");
     var tool = {
         "class": "CommandLineTool",
         "inputs": [],

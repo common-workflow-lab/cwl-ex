@@ -18,17 +18,17 @@ workflowdecl : DEF ws+ WORKFLOW ws+ name ws* input_params ws* OPENBRACE workflow
 
 tooldecl : DEF ws+ TOOL ws+ name ws* input_params ws* OPENBRACE toolbody CLOSEBRACE ;
 
-req_decl : (symbol | symbol ws+ struct_const) ws* NEWLINE ;
+req_decl : symbol COMMA? ws+ | symbol ws+ struct_const ws* NEWLINE ;
 
 reqs : (REQUIREMENTS | HINTS) ws+ OPENBRACE ws* (req_decl ws*)* CLOSEBRACE ;
 
 workflowbodyStatement : (const_assignment | step | reqs | ws) ;
 
-workflowbody : workflowbodyStatement* ws* RETURN ws+ symbolassignlist ws* ;
+workflowbody : workflowbodyStatement* ws* RETURN ws+ symbolassignlist ;
 
-symbolassign : name | name ws* EQ ws* symbol ;
+symbolassign : name | symbol ws+ AS ws+ name ;
 
-symbolassignlist : symbol | OPENPAREN ws* symbolassign ws* (COMMA ws* symbolassign)* ws* CLOSEPAREN;
+symbolassignlist : symbolassign ws* (COMMA ws* symbolassign ws*)* ;
 
 linkmerge : (MERGE_NESTED | MERGE_FLATTENED) ws* OPENPAREN ws* symbol (COMMA ws* symbol)* ws* CLOSEPAREN ;
 
@@ -87,7 +87,7 @@ const_value  : SQSTRING | DQSTRING | INTEGER | FLOAT | file_const | dir_const | 
 
 const_assignment : name ws* EQ ws* const_value ws*? NEWLINE ;
 
-output_assignment : name ws* EQ ws* (typedexpr | symbol) ws*? NEWLINE ;
+output_assignment : typedexpr ws+ AS ws+ name | symbol (ws+ AS ws+ name)? ;
 
 optional_for_bind : symbol ;
 optional_for_over : symbol ;
@@ -95,7 +95,7 @@ optional_for_over : symbol ;
 optional_arg : QUES ws+ argument ws+ (name | FOR ws+ EACH ws+ IN ws+ name)? ws* NEWLINE ;
 
 returnvar : symbol ;
-toolbody : (reqs | ws)* command (output_assignment | ws)* ;
+toolbody : (reqs | ws)* command RETURN ws+ output_assignment ws* (COMMA ws* output_assignment ws*)* ;
 
 name : symbol ;
 structdecl : STRUCT ws* OPENBRACE ws* (param_decl ws* (COMMA ws* param_decl ws*)*)? ws* CLOSEBRACE ;

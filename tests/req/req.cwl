@@ -1,27 +1,37 @@
 {
-  "class": "CommandLineTool",
-  "id": "main",
-  "inputs": [],
-  "outputs": [],
-  "requirements": [
-    {
-      "listing": [
-        {
-          "entry": "hello",
-          "entryname": "hello.txt"
-        }
-      ],
-      "class": "InitialWorkDirRequirement"
-    }
+  "arguments": [
+    "rev",
+    "hello.txt"
   ],
+  "class": "CommandLineTool",
+  "cwlVersion": "v1.0",
   "hints": [
     {
       "class": "ShellCommandRequirement"
     }
   ],
-  "arguments": [
-    "cat",
-    "hello.txt"
+  "id": "main",
+  "inputs": [
   ],
-  "cwlVersion": "v1.0"
+  "outputs": [
+    {
+      "id": "out",
+      "outputBinding": {
+        "glob": "txt.olleh"
+      },
+      "type": "File"
+    }
+  ],
+  "requirements": [
+    {
+      "class": "InitialWorkDirRequirement",
+      "listing": [
+        {
+          "entry": "hello",
+          "entryname": "hello.txt"
+        }
+      ]
+    }
+  ],
+  "stdout": "txt.olleh"
 }

@@ -1,8 +1,14 @@
 {
   "$graph": [
     {
+      "arguments": [
+        "python",
+        "-mschema_salad",
+        "--print-rdfs",
+        "$(inputs.schema)"
+      ],
       "class": "CommandLineTool",
-      "id": "makerdfs",
+      "id": "#makerdfs",
       "inputs": [
         {
           "id": "schema",
@@ -30,19 +36,20 @@
         }
       ],
       "requirements": {
-        "InlineJavascriptRequirement": {}
+        "InlineJavascriptRequirement": {
+        }
       },
-      "arguments": [
-        "python",
-        "-mschema_salad",
-        "--print-rdfs",
-        "$(inputs.schema)"
-      ],
       "stdout": "$(inputs.target_path)"
     },
     {
+      "arguments": [
+        "python",
+        "-mschema_salad",
+        "--print-jsonld-context",
+        "$(inputs.schema)"
+      ],
       "class": "CommandLineTool",
-      "id": "makecontext",
+      "id": "#makecontext",
       "inputs": [
         {
           "id": "schema",
@@ -70,19 +77,18 @@
         }
       ],
       "requirements": {
-        "InlineJavascriptRequirement": {}
+        "InlineJavascriptRequirement": {
+        }
       },
-      "arguments": [
-        "python",
-        "-mschema_salad",
-        "--print-jsonld-context",
-        "$(inputs.schema)"
-      ],
       "stdout": "$(inputs.target_path)"
     },
     {
+      "arguments": [
+        "sh",
+        "_script"
+      ],
       "class": "CommandLineTool",
-      "id": "inheritance",
+      "id": "#inheritance",
       "inputs": [
         {
           "id": "schema",
@@ -110,25 +116,26 @@
         }
       ],
       "requirements": {
-        "InlineJavascriptRequirement": {},
         "InitialWorkDirRequirement": {
           "listing": [
             {
-              "entryname": "_script",
-              "entry": "schema-salad-tool --print-inheritance-dot \"$(inputs.schema.path)\" | dot -Tsvg\n"
+              "entry": "schema-salad-tool --print-inheritance-dot \"$(inputs.schema.path)\" | dot -Tsvg\n",
+              "entryname": "_script"
             }
           ]
+        },
+        "InlineJavascriptRequirement": {
         }
       },
-      "arguments": [
-        "sh",
-        "_script"
-      ],
       "stdout": "$(inputs.target_path)"
     },
     {
+      "arguments": [
+        "schema-salad-doc",
+        "$(inputs.source)"
+      ],
       "class": "CommandLineTool",
-      "id": "makedoc",
+      "id": "#makedoc",
       "inputs": [
         {
           "id": "source",
@@ -136,49 +143,49 @@
         },
         {
           "id": "renderlist",
-          "type": [
-            "null",
-            {
-              "type": "array",
-              "items": "string"
-            }
-          ],
           "inputBinding": {
             "position": 1,
             "prefix": "--only"
-          }
-        },
-        {
-          "id": "redirect",
+          },
           "type": [
             "null",
             {
-              "type": "array",
               "items": "string",
-              "inputBinding": {
-                "prefix": "--redirect"
-              }
+              "type": "array"
             }
-          ],
+          ]
+        },
+        {
+          "id": "redirect",
           "inputBinding": {
             "position": 2
-          }
+          },
+          "type": [
+            "null",
+            {
+              "inputBinding": {
+                "prefix": "--redirect"
+              },
+              "items": "string",
+              "type": "array"
+            }
+          ]
         },
         {
           "id": "brand",
-          "type": "string",
           "inputBinding": {
             "position": 3,
             "prefix": "--brand"
-          }
+          },
+          "type": "string"
         },
         {
           "id": "brandlink",
-          "type": "string",
           "inputBinding": {
             "position": 4,
             "prefix": "--brandlink"
-          }
+          },
+          "type": "string"
         },
         {
           "id": "target",
@@ -186,14 +193,14 @@
         },
         {
           "id": "primtype",
-          "type": [
-            "null",
-            "string"
-          ],
           "inputBinding": {
             "position": 5,
             "prefix": "--primtype"
-          }
+          },
+          "type": [
+            "null",
+            "string"
+          ]
         },
         {
           "id": "extra",
@@ -224,31 +231,19 @@
         }
       ],
       "requirements": {
-        "InlineJavascriptRequirement": {}
+        "InlineJavascriptRequirement": {
+        }
       },
-      "arguments": [
-        "schema-salad-doc",
-        "$(inputs.source)"
-      ],
       "stdout": "$(inputs.target)"
     },
     {
       "class": "Workflow",
-      "id": "main",
-      "requirements": {
-        "ScatterFeatureRequirement": {},
-        "StepInputExpressionRequirement": {},
-        "MultipleInputFeatureRequirement": {},
-        "InlineJavascriptRequirement": {},
-        "SubworkflowFeatureRequirement": {}
-      },
+      "id": "#main",
       "inputs": [
         {
           "id": "render",
           "type": {
-            "type": "array",
             "items": {
-              "type": "record",
               "fields": [
                 {
                   "name": "source",
@@ -259,8 +254,8 @@
                   "type": [
                     "null",
                     {
-                      "type": "array",
-                      "items": "string"
+                      "items": "string",
+                      "type": "array"
                     }
                   ]
                 },
@@ -269,8 +264,8 @@
                   "type": [
                     "null",
                     {
-                      "type": "array",
-                      "items": "string"
+                      "items": "string",
+                      "type": "array"
                     }
                   ]
                 },
@@ -297,16 +292,16 @@
                   "name": "extra",
                   "type": "File"
                 }
-              ]
-            }
+              ],
+              "type": "record"
+            },
+            "type": "array"
           }
         },
         {
           "id": "schemas",
           "type": {
-            "type": "array",
             "items": {
-              "type": "record",
               "fields": [
                 {
                   "name": "schema_in",
@@ -324,8 +319,10 @@
                   "name": "graph_target",
                   "type": "string"
                 }
-              ]
-            }
+              ],
+              "type": "record"
+            },
+            "type": "array"
           }
         },
         {
@@ -333,25 +330,38 @@
           "type": "File"
         },
         {
-          "type": "string",
           "default": "",
-          "id": "empty"
+          "id": "empty",
+          "type": "string"
         }
       ],
       "outputs": [
         {
           "id": "doc_out",
-          "type": "File",
-          "outputSource": "main_5/doc_out"
+          "outputSource": "main_5/doc_out",
+          "type": "File"
         },
         {
           "id": "report",
-          "type": "File",
-          "outputSource": "main_6/report"
+          "outputSource": "main_6/report",
+          "type": "File"
         }
       ],
+      "requirements": {
+        "InlineJavascriptRequirement": {
+        },
+        "MultipleInputFeatureRequirement": {
+        },
+        "ScatterFeatureRequirement": {
+        },
+        "StepInputExpressionRequirement": {
+        },
+        "SubworkflowFeatureRequirement": {
+        }
+      },
       "steps": [
         {
+          "id": "main_1",
           "in": {
             "schemas": {
               "source": "schemas"
@@ -361,16 +371,13 @@
             "rdfs",
             "targetdir"
           ],
-          "id": "main_1",
           "run": {
             "class": "Workflow",
             "inputs": [
               {
                 "id": "schemas",
                 "type": {
-                  "type": "array",
                   "items": {
-                    "type": "record",
                     "fields": [
                       {
                         "name": "schema_in",
@@ -388,38 +395,42 @@
                         "name": "graph_target",
                         "type": "string"
                       }
-                    ]
-                  }
+                    ],
+                    "type": "record"
+                  },
+                  "type": "array"
                 }
               }
             ],
             "outputs": [
               {
                 "id": "rdfs",
+                "outputSource": "makerdfs/rdfs",
                 "type": {
-                  "type": "array",
-                  "items": "File"
-                },
-                "outputSource": "makerdfs/rdfs"
+                  "items": "File",
+                  "type": "array"
+                }
               },
               {
                 "id": "targetdir",
+                "outputSource": "makerdfs/targetdir",
                 "type": {
-                  "type": "array",
-                  "items": "string"
-                },
-                "outputSource": "makerdfs/targetdir"
+                  "items": "string",
+                  "type": "array"
+                }
               }
             ],
             "requirements": {
-              "InlineJavascriptRequirement": {}
+              "InlineJavascriptRequirement": {
+              }
             },
             "steps": [
               {
+                "id": "makerdfs",
                 "in": {
                   "schema": {
-                    "valueFrom": "$(inputs.schema.schema_in)",
-                    "source": "schemas"
+                    "source": "schemas",
+                    "valueFrom": "$(inputs.schema.schema_in)"
                   },
                   "target_path": {
                     "valueFrom": "$(inputs.schema.rdfs_target)"
@@ -429,7 +440,6 @@
                   "rdfs",
                   "targetdir"
                 ],
-                "id": "makerdfs",
                 "run": "#makerdfs",
                 "scatter": [
                   "schema"
@@ -439,10 +449,11 @@
           }
         },
         {
+          "id": "makecontext",
           "in": {
             "schema": {
-              "valueFrom": "$(inputs.schema.schema_in)",
-              "source": "schemas"
+              "source": "schemas",
+              "valueFrom": "$(inputs.schema.schema_in)"
             },
             "target_path": {
               "valueFrom": "$(inputs.schema.context_target)"
@@ -452,17 +463,17 @@
             "jsonld_context",
             "targetdir"
           ],
-          "id": "makecontext",
           "run": "#makecontext",
           "scatter": [
             "schema"
           ]
         },
         {
+          "id": "inheritance",
           "in": {
             "schema": {
-              "valueFrom": "$(inputs.schema.schema_in)",
-              "source": "schemas"
+              "source": "schemas",
+              "valueFrom": "$(inputs.schema.schema_in)"
             },
             "target_path": {
               "valueFrom": "$(inputs.schema.graph_target)"
@@ -472,19 +483,28 @@
             "svg",
             "targetdir"
           ],
-          "id": "inheritance",
           "run": "#inheritance",
           "scatter": [
             "schema"
           ]
         },
         {
+          "id": "makedoc",
           "in": {
-            "source": {
-              "valueFrom": "$(inputs.rdr.source)"
+            "brand": {
+              "valueFrom": "$(inputs.rdr.brandimg)"
             },
-            "target": {
-              "valueFrom": "$(inputs.rdr.target)"
+            "brandlink": {
+              "valueFrom": "$(inputs.rdr.brandlink)"
+            },
+            "extra": {
+              "valueFrom": "$(inputs.rdr.extra)"
+            },
+            "primtype": {
+              "valueFrom": "$(inputs.rdr.primtype)"
+            },
+            "rdr": {
+              "source": "render"
             },
             "rdrlist": {
               "valueFrom": "$(inputs.rdr.renderlist)"
@@ -492,20 +512,11 @@
             "redirect": {
               "valueFrom": "$(inputs.rdr.redirect)"
             },
-            "brandlink": {
-              "valueFrom": "$(inputs.rdr.brandlink)"
+            "source": {
+              "valueFrom": "$(inputs.rdr.source)"
             },
-            "brand": {
-              "valueFrom": "$(inputs.rdr.brandimg)"
-            },
-            "primtype": {
-              "valueFrom": "$(inputs.rdr.primtype)"
-            },
-            "extra": {
-              "valueFrom": "$(inputs.rdr.extra)"
-            },
-            "rdr": {
-              "source": "render"
+            "target": {
+              "valueFrom": "$(inputs.rdr.target)"
             }
           },
           "out": [
@@ -513,14 +524,25 @@
             "targetdir",
             "extra_out"
           ],
-          "id": "makedoc",
           "run": "#makedoc",
           "scatter": [
             "rdr"
           ]
         },
         {
+          "id": "main_5",
           "in": {
+            "dirs": {
+              "linkMerge": "merge_flattened",
+              "source": [
+                "makedoc/targetdir",
+                "main_1/targetdir",
+                "makecontext/targetdir",
+                "empty",
+                "makedoc/targetdir",
+                "inheritance/targetdir"
+              ]
+            },
             "primary": {
               "source": "makedoc/html"
             },
@@ -534,45 +556,34 @@
                 "makedoc/extra_out",
                 "inheritance/svg"
               ]
-            },
-            "dirs": {
-              "linkMerge": "merge_flattened",
-              "source": [
-                "makedoc/targetdir",
-                "main_1/targetdir",
-                "makecontext/targetdir",
-                "empty",
-                "makedoc/targetdir",
-                "inheritance/targetdir"
-              ]
             }
           },
           "out": [
             "doc_out"
           ],
-          "id": "main_5",
           "run": {
             "class": "ExpressionTool",
+            "expression": "${return {'doc_out': (function(){\n    var primary = inputs.primary[0];\n    var secondary = inputs.secondary.slice(1);\n    var dirs = inputs.dirs.slice(1);\n    primary.secondaryFiles = [];\n    for (var i = 0; i < secondary.length; i++) {\n      var k = secondary[i];\n      if (dirs[i] != \"\") {\n        primary.secondaryFiles.push({\n            class: \"Directory\",\n            basename: dirs[i],\n            listing: [k]\n        });\n      } else {\n        primary.secondaryFiles.push(k);\n      }\n    }\n    return primary;\n  })()};}",
             "inputs": [
               {
                 "id": "primary",
                 "type": {
-                  "type": "array",
-                  "items": "File"
+                  "items": "File",
+                  "type": "array"
                 }
               },
               {
                 "id": "secondary",
                 "type": {
-                  "type": "array",
-                  "items": "File"
+                  "items": "File",
+                  "type": "array"
                 }
               },
               {
                 "id": "dirs",
                 "type": {
-                  "type": "array",
-                  "items": "string"
+                  "items": "string",
+                  "type": "array"
                 }
               }
             ],
@@ -581,11 +592,11 @@
                 "id": "doc_out",
                 "type": "File"
               }
-            ],
-            "expression": "${return {'doc_out': (function(){\n    var primary = inputs.primary[0];\n    var secondary = inputs.secondary.slice(1);\n    var dirs = inputs.dirs.slice(1);\n    primary.secondaryFiles = [];\n    for (var i = 0; i < secondary.length; i++) {\n      var k = secondary[i];\n      if (dirs[i] != \"\") {\n        primary.secondaryFiles.push({\n            class: \"Directory\",\n            basename: dirs[i],\n            listing: [k]\n        });\n      } else {\n        primary.secondaryFiles.push(k);\n      }\n    }\n    return primary;\n  })()};}"
+            ]
           }
         },
         {
+          "id": "main_6",
           "in": {
             "doc_out": {
               "source": "main_5/doc_out"
@@ -594,8 +605,13 @@
           "out": [
             "report"
           ],
-          "id": "main_6",
           "run": {
+            "arguments": [
+              "checklink",
+              "-X(http.*|mailto:.*)",
+              "-q",
+              "$(inputs.doc_out)"
+            ],
             "class": "CommandLineTool",
             "inputs": [
               {
@@ -607,20 +623,15 @@
               {
                 "id": "report",
                 "outputBinding": {
-                  "glob": "$(\"linkchecker-report.txt\")"
+                  "glob": "linkchecker-report.txt"
                 },
                 "type": "File"
               }
             ],
             "requirements": {
-              "InlineJavascriptRequirement": {}
+              "InlineJavascriptRequirement": {
+              }
             },
-            "arguments": [
-              "checklink",
-              "-X(http.*|mailto:.*)",
-              "-q",
-              "$(inputs.doc_out)"
-            ],
             "stdout": "linkchecker-report.txt"
           }
         }

@@ -1,3 +1,4 @@
 def tool main() {
-  echo "she said \"hello\"" 'then she said \'goodbye\''
+  echo "she said \"hello\"" 'then she said \'goodbye\'' > output.txt
+  return File("output.txt") as out
 }

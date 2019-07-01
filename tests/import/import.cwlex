@@ -2,7 +2,7 @@ import 'echo.cwlex' as echo1
 import 'echo2.cwl' as echo2
 
 def workflow main() {
-  (m1=m) = echo1(msg="foo")
-  (m2=m) = echo2(msg="bar")
-  return (m1, m2)
+  m as m1 = echo1(msg="foo")
+  m as m2 = echo2(msg="bar")
+  return m1, m2
 }

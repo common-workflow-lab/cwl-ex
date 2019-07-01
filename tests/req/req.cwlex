@@ -7,8 +7,7 @@ def tool main() {
       }]
     }
   }
-  hints {
-    ShellCommandRequirement
-  }
-  cat hello.txt
+  hints { ShellCommandRequirement }
+  rev hello.txt > txt.olleh
+  return File("txt.olleh") as out
 }
