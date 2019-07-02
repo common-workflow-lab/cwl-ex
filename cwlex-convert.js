@@ -415,21 +415,33 @@ CwlExListener.prototype.enterCall = function(ctx) {
 CwlExListener.prototype.exitCall = function(ctx) {
 }
 
-CwlExListener.prototype.enterForeach = function(ctx) {
-    var inp = ctx.scatterparams().symbollist().symbol().map((p) => p.getText());
-    var src = ctx.scattersources().symbollist().symbol().map((p) => p.getText());
-    this.workTop("step").scatter = inp;
-    for (var i = 0; i < inp.length; i++) {
-        if (!this.workTop("step")["in"][inp[i]]) {
-            this.workTop("step")["in"][inp[i]] = {};
+CwlExListener.prototype.enterScatter = function(ctx) {
+    this.pushWork("symbolassign", []);
+}
+
+CwlExListener.prototype.exitScatter = function(ctx) {
+    var sa = this.popWork("symbolassign");
+    var step = this.workTop("step");
+    step.scatter = [];
+    sa.map((m) => {
+        var name = m[0];
+        var symbol = m[1];
+        step.scatter.push(name);
+        if (!step["in"][name]) {
+            step["in"][name] = {};
         }
-        this.workTop("step")["in"][inp[i]]["source"] = src[i];
-    }
+        step["in"][name].source = symbol;
+    });
 }
 
 CwlExListener.prototype.enterStepinput = function(ctx) {
     var workin = this.workTop("step")["in"];
-    var link = {};
+
+    if (!workin[ctx.name().getText()]) {
+        workin[ctx.name().getText()] = {};
+    }
+    var link = workin[ctx.name().getText()];
+
     if (ctx.symbol()) {
         var bind = this.workTop("bindings")[ctx.symbol().getText()];
         link.source = bind.source;
@@ -484,8 +496,6 @@ CwlExListener.prototype.enterStepinput = function(ctx) {
             this.workTop("embedded")["inputs"].push({id: ctx.name().getText(), type: bind.type});
         }
     }
-
-    workin[ctx.name().getText()] = link;
 };
 
 CwlExListener.prototype.enterExprstep = function(ctx) {

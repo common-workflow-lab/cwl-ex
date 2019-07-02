@@ -36,15 +36,9 @@ typedexpr : typedecl (jsexpr | jsblock) ;
 
 exprstep : typedexpr ws* stepinputs ;
 
-step : symbolassignlist ws* EQ ws* (exprstep | inlinetool | inlineworkflow | call) ws* foreach? ws* NEWLINE ;
+step : symbolassignlist ws* EQ ws* scatter? ws* (exprstep | inlinetool | inlineworkflow | call) ws* NEWLINE ;
 
-symbollist : symbol ws* (COMMA ws* symbol)* ;
-
-scatterparams : symbollist ;
-
-scattersources : symbollist ;
-
-foreach : FOR ws+ EACH ws+ scatterparams ws+ IN ws+ scattersources ;
+scatter : SCATTER ws+ symbolassignlist ws+ DO ws+ ;
 
 inlinetool : RUN ws+ TOOL ws* stepinputs ws* OPENBRACE ws* toolbody ws* CLOSEBRACE ;
 
@@ -116,7 +110,7 @@ ws : NEWLINE | SPACE | COMMENT ;
 keyword : WORKFLOW | TOOL | FILE | DIRECTORY | STDOUT | FOR | EACH | IN
          | DEF | RUN | RETURN | STRUCT | USING | MERGE_NESTED
 	 | MERGE_FLATTENED | INT_SYMBOL | FLOAT_SYMBOL | REQUIREMENTS
-	 | HINTS | IMPORT | AS;
+	 | HINTS | IMPORT | AS | SCATTER | DO ;
 
 import_decl : IMPORT ws+ (SQSTRING | DQSTRING) ws+ AS ws+ name ws* NEWLINE ;
 
@@ -168,5 +162,7 @@ REQUIREMENTS : 'requirements';
 HINTS : 'hints';
 IMPORT : 'import';
 AS : 'as';
+DO : 'do';
+SCATTER : 'scatter';
 
 NOTWS : ~('\n' | ' ' | '\t') ;

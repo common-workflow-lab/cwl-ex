@@ -67,29 +67,32 @@ def workflow main(
 ) {
 
   rdfs, targetdir as rdfstargetdir = run workflow (schemas) {
-    rdfs, targetdir = makerdfs(schema=$(inputs.schema.schema_in),
-                             target_path=$(inputs.schema.rdfs_target)
-			     ) for each schema in schemas
+    rdfs, targetdir = scatter schemas as schema do
+                      makerdfs(schema=$(inputs.schema.schema_in),
+                             target_path=$(inputs.schema.rdfs_target))
     return rdfs, targetdir
   }
 
-  jsonld_context, targetdir as contexttargetdir = makecontext(schema=$(inputs.schema.schema_in),
-                             target_path=$(inputs.schema.context_target)
-			     ) for each schema in schemas
+  jsonld_context, targetdir as contexttargetdir =
+       scatter schemas as schema do
+	  makecontext(schema=$(inputs.schema.schema_in),
+                              target_path=$(inputs.schema.context_target))
 
-  svg, targetdir as svgtargetdir = inheritance(schema=$(inputs.schema.schema_in),
-                             target_path=$(inputs.schema.graph_target)
-			     ) for each schema in schemas
+  svg, targetdir as svgtargetdir =
+        scatter schemas as schema do
+	    inheritance(schema=$(inputs.schema.schema_in),
+                              target_path=$(inputs.schema.graph_target))
 
-  html, targetdir as htmltargetdir, extra_out = makedoc(
-     source=$(inputs.rdr.source),
-     target=$(inputs.rdr.target),
-     rdrlist=$(inputs.rdr.renderlist),
-     redirect=$(inputs.rdr.redirect),
-     brandlink=$(inputs.rdr.brandlink),
-     brand=$(inputs.rdr.brandimg),
-     primtype=$(inputs.rdr.primtype),
-     extra=$(inputs.rdr.extra)) for each rdr in render
+  html, targetdir as htmltargetdir, extra_out =
+    scatter render as rdr do makedoc(
+      source=$(inputs.rdr.source),
+      target=$(inputs.rdr.target),
+      rdrlist=$(inputs.rdr.renderlist),
+      redirect=$(inputs.rdr.redirect),
+      brandlink=$(inputs.rdr.brandlink),
+      brand=$(inputs.rdr.brandimg),
+      primtype=$(inputs.rdr.primtype),
+      extra=$(inputs.rdr.extra))
 
   doc_out = File{
     var primary = inputs.primary[0];
