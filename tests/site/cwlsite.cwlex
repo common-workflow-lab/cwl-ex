@@ -94,7 +94,12 @@ def workflow main(
       primtype=$(inputs.rdr.primtype),
       extra=$(inputs.rdr.extra))
 
-  doc_out = File{
+  doc_out = run expr (primary=html,
+    secondary=merge_flattened(html, rdfs, jsonld_context,
+                              brandimg, extra_out, svg),
+    dirs=merge_flattened(htmltargetdir, rdfstargetdir, contexttargetdir,
+                         empty, htmltargetdir, svgtargetdir)) File
+  {
     var primary = inputs.primary[0];
     var secondary = inputs.secondary.slice(1);
     var dirs = inputs.dirs.slice(1);
@@ -112,11 +117,7 @@ def workflow main(
       }
     }
     return primary;
-  }(primary=html,
-    secondary=merge_flattened(html, rdfs, jsonld_context,
-                              brandimg, extra_out, svg),
-    dirs=merge_flattened(htmltargetdir, rdfstargetdir, contexttargetdir,
-                         empty, htmltargetdir, svgtargetdir))
+  }
 
   report = run tool (doc_out) {
     checklink -X(http.*|mailto:.*) -q $(inputs.doc_out) > linkchecker-report.txt

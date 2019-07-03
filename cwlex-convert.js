@@ -368,7 +368,7 @@ CwlExListener.prototype.enterStep = function(ctx) {
     this.pushWork("step", step);
     var stepcount = this.popWork("stepcount");
     this.pushWork("stepcount", stepcount+1);
-    if (ctx.exprstep() || ctx.inlinetool() || ctx.inlineworkflow()) {
+    if (ctx.inlineexpr() || ctx.inlinetool() || ctx.inlineworkflow()) {
         this.pushWork("inline", true);
     }
 };
@@ -401,7 +401,7 @@ CwlExListener.prototype.exitStep = function(ctx) {
     });
     this.workTop("tool").steps.push(step);
     this.popWork("embedded");
-    if (ctx.exprstep() || ctx.inlinetool() || ctx.inlineworkflow()) {
+    if (ctx.inlineexpr() || ctx.inlinetool() || ctx.inlineworkflow()) {
         this.popWork("inline");
     }
 };
@@ -498,7 +498,7 @@ CwlExListener.prototype.enterStepinput = function(ctx) {
     }
 };
 
-CwlExListener.prototype.enterExprstep = function(ctx) {
+CwlExListener.prototype.enterInlineexpr = function(ctx) {
     this.workTop("step")["id"] = this.workTop("tool")["id"].substr(1) + "_" + this.workTop("stepcount");
     var rvar = this.workTop("symbolassign")[0][1];
     var r = {
@@ -525,7 +525,7 @@ CwlExListener.prototype.enterExprstep = function(ctx) {
     this.pushWork("embedded", tool);
 };
 
-CwlExListener.prototype.exitExprstep = function(ctx) {
+CwlExListener.prototype.exitInlineexpr = function(ctx) {
     this.popWork("tool");
     this.popWork("namefield");
     this.popWork("add_fields_to");
@@ -612,6 +612,43 @@ CwlExListener.prototype.exitReqs = function(ctx) {
     if (ctx.HINTS()) {
         this.workTop("tool")["hints"] = reqs;
     }
+}
+
+CwlExListener.prototype.enterExprdecl = function(ctx) {
+    var rvar = "out";
+    var r = {
+        "id": rvar
+    };
+
+    var tool = {
+        "class": "ExpressionTool",
+        "id": "#"+ctx.name().getText(),
+        inputs: [],
+        outputs: [r],
+        requirements: {
+            "InlineJavascriptRequirement": {}
+        }
+    };
+
+    if (ctx.typedexpr().jsexpr()) {
+        tool.expression = "${return {'"+rvar+"': "+ctx.typedexpr().jsexpr().getText()+"};}";
+    }
+    if (ctx.typedexpr().jsblock()) {
+        tool.expression = "${return {'"+rvar+"': (function()"+ctx.typedexpr().jsblock().getText()+")()};}";
+    }
+
+    this.pushWork("tool", tool);
+    this.pushWork("add_fields_to", tool.inputs);
+    this.pushWork("set_type_on", r);
+    this.pushWork("namefield", "id");
+};
+
+CwlExListener.prototype.exitExprdecl = function(ctx) {
+    var tool = this.popWork("tool");
+    this.graph[tool.id.substr(1)] = tool;
+    this.popWork("add_fields_to");
+    this.popWork("set_type_on");
+    this.popWork("namefield");
 }
 
 var convert = (input, baseurl) => {

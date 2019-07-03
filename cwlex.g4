@@ -1,6 +1,6 @@
 grammar cwlex;
 
-root : (workflowdecl | tooldecl | import_decl | ws)+ ;
+root : (workflowdecl | tooldecl | import_decl | exprdecl | ws)+ ;
 
 javascript : (jsstring | jsexpr | jsblock | jslist | ws | DOLLAR | COLON
 	   | COMMA | EQ | QUES | GREATER | LESSER | COMMENT | FLOAT | INTEGER
@@ -32,11 +32,11 @@ symbolassignlist : symbolassign ws* (COMMA ws* symbolassign ws*)* ;
 
 linkmerge : (MERGE_NESTED | MERGE_FLATTENED) ws* OPENPAREN ws* symbol (COMMA ws* symbol)* ws* CLOSEPAREN ;
 
-typedexpr : typedecl (jsexpr | jsblock) ;
+typedexpr : typedecl ws* (jsexpr | jsblock) ;
 
-exprstep : typedexpr ws* stepinputs ;
+inlineexpr : RUN ws+ EXPR ws+ stepinputs ws* typedexpr ;
 
-step : symbolassignlist ws* EQ ws* scatter? ws* (exprstep | inlinetool | inlineworkflow | call) ws* NEWLINE ;
+step : symbolassignlist ws* EQ ws* scatter? ws* (inlineexpr | inlinetool | inlineworkflow | call) ws* NEWLINE ;
 
 scatter : SCATTER ws+ symbolassignlist ws+ DO ws+ ;
 
@@ -105,14 +105,16 @@ param_decl : name QUES? ws+ typedecl | name ws* EQ ws* const_value;
 symbolpart : keyword | NOTWS;
 symbol : NOTWS | symbolpart (symbolpart | INTEGER | FLOAT)+ ;
 
+import_decl : IMPORT ws+ (SQSTRING | DQSTRING) ws+ AS ws+ name ws* NEWLINE ;
+
+exprdecl : DEF ws+ EXPR ws+ name ws* input_params ws* typedexpr ;
+
 ws : NEWLINE | SPACE | COMMENT ;
 
 keyword : WORKFLOW | TOOL | FILE | DIRECTORY | STDOUT | FOR | EACH | IN
          | DEF | RUN | RETURN | STRUCT | USING | MERGE_NESTED
 	 | MERGE_FLATTENED | INT_SYMBOL | FLOAT_SYMBOL | REQUIREMENTS
-	 | HINTS | IMPORT | AS | SCATTER | DO ;
-
-import_decl : IMPORT ws+ (SQSTRING | DQSTRING) ws+ AS ws+ name ws* NEWLINE ;
+	 | HINTS | IMPORT | AS | SCATTER | DO | EXPR ;
 
 DOLLAR : '$' ;
 OPENPAREN : '(' ;
@@ -164,5 +166,6 @@ IMPORT : 'import';
 AS : 'as';
 DO : 'do';
 SCATTER : 'scatter';
+EXPR : 'expr';
 
 NOTWS : ~('\n' | ' ' | '\t') ;
