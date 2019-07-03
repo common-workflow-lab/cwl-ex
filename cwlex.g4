@@ -36,7 +36,7 @@ typedexpr : typedecl ws* (jsexpr | jsblock) ;
 
 inlineexpr : RUN ws+ EXPR ws+ stepinputs ws* typedexpr ;
 
-step : symbolassignlist ws* EQ ws* scatter? ws* (inlineexpr | inlinetool | inlineworkflow | call) ws* NEWLINE ;
+step : (symbolassignlist ws* EQ)? ws* scatter? ws* (inlineexpr | inlinetool | inlineworkflow | call) ws* NEWLINE ;
 
 scatter : SCATTER ws+ symbolassignlist ws+ DO ws+ ;
 
@@ -69,7 +69,9 @@ redirect : GREATER SPACE* argument ;
 
 command : SPACE* argument (SPACE+ argument)* SPACE* redirect? SPACE* (scriptbody | NEWLINE) (optional_arg | ws)* ;
 
-file_const : FILE ws* OPENPAREN (SQSTRING | DQSTRING) CLOSEPAREN ;
+const_string : SQSTRING | DQSTRING ;
+
+file_const : FILE ws* OPENPAREN ws* const_string ws* (COMMA ws* const_string ws*)* CLOSEPAREN ;
 dir_const : DIRECTORY ws* OPENPAREN (SQSTRING | DQSTRING) CLOSEPAREN ;
 
 struct_field_name : (SQSTRING | DQSTRING | symbol) ;

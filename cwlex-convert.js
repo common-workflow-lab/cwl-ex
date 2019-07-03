@@ -192,14 +192,23 @@ CwlExListener.prototype.enterConst_value = function(ctx) {
         newinput.type = "File";
         newinput["default"] = {
             "class": "File",
-            "location": extractString(ca.file_const())
+            "location": extractString(ca.file_const().const_string()[0])
         };
+        if (ca.file_const().const_string().length > 1) {
+            newinput["default"]["secondaryFiles"] = [];
+            for (var i = 1; i < ca.file_const().const_string().length; i++) {
+                newinput["default"]["secondaryFiles"].push({
+                    "class": "File",
+                    "location": extractString(ca.file_const().const_string()[i])
+                });
+            }
+        }
     }
     if (ca.dir_const()) {
         newinput.type = "Directory";
         newinput["default"] = {
             "class": "Directory",
-            "location": extractString(ca.file_const())
+            "location": extractString(ca.dir_const())
         };
     }
     if (ca.struct_const()) {
@@ -394,21 +403,32 @@ CwlExListener.prototype.exitStep = function(ctx) {
     var sa = this.popWork("symbolassign");
     var step = this.popWork("step");
     var emb = this.popWork("embedded");
-    sa.map((m) => {
-        step.out.push(m[1]);
-
-        var tp;
+    if (sa.length == 0) {
         emb["outputs"].map((op) => {
-            if (op["id"] == [m[1]]) {
-                tp = op["type"];
+            step.out.push(op.id);
+            var tp = op.type;
+            if (step["scatter"]) {
+                tp = {type: "array", items: tp};
             }
+            this.workTop("bindings")[op.id] = {"source": step.id+"/"+op.id, "type": tp};
         });
-        if (step["scatter"]) {
-            tp = {type: "array", items: tp};
-        }
+    } else {
+        sa.map((m) => {
+            step.out.push(m[1]);
 
-        this.workTop("bindings")[m[0]] = {"source": step.id+"/"+m[1], "type": tp};
-    });
+            var tp;
+            emb["outputs"].map((op) => {
+                if (op["id"] == [m[1]]) {
+                    tp = op["type"];
+                }
+            });
+            if (step["scatter"]) {
+                tp = {type: "array", items: tp};
+            }
+
+            this.workTop("bindings")[m[0]] = {"source": step.id+"/"+m[1], "type": tp};
+        });
+    }
     this.workTop("tool").steps.push(step);
     var si = this.popWork("scatterinputs");
     if (ctx.inlineexpr() || ctx.inlinetool() || ctx.inlineworkflow()) {

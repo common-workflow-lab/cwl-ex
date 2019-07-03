@@ -373,6 +373,7 @@
           ],
           "run": {
             "class": "Workflow",
+            "id": "main_1_embed",
             "inputs": [
               {
                 "id": "schemas",
@@ -613,6 +614,7 @@
               "$(inputs.doc_out)"
             ],
             "class": "CommandLineTool",
+            "id": "main_6_embed",
             "inputs": [
               {
                 "id": "doc_out",

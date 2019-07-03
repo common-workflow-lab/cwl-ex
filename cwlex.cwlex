@@ -1,0 +1,18 @@
+def tool main(
+    cwlex = File("cwlex.js", "cwlex-convert.js", "cwlexLexer.js", "cwlexListener.js", "cwlexParser.js"),
+    node_modules = Directory("node_modules"),
+    inp File)
+{
+   requirements {
+      InitialWorkDirRequirement {
+        listing: [{
+          entry: "$(inputs.node_modules)"
+         }, {
+          entry: "$(inputs.cwlex)"
+        }]
+      }
+      DockerRequirement { dockerPull: "node:slim" }
+   }
+   nodejs $(inputs.cwlex) $(inputs.inp) > converted.cwl
+   return File("converted.cwl") as converted
+}
