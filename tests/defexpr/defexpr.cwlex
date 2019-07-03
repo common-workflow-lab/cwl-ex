@@ -1,0 +1,3 @@
+def expr main (foo int) int {
+  return inputs.foo+1;
+}
