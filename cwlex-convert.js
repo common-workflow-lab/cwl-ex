@@ -355,9 +355,17 @@ CwlExListener.prototype.exitCommand = function(ctx) {
     this.popWork("pos");
 };
 
+var trimfrag = (f) => {
+    if (f[0] == "#") {
+        return f.substr(1);
+    } else {
+        return f;
+    }
+}
+
 CwlExListener.prototype.exitTooldecl = function(ctx) {
     var tool = this.popWork("tool");
-    this.graph[tool.id.substr(1)] = tool;
+    this.graph[trimfrag(tool.id)] = tool;
     this.popWork("namefield");
     this.popWork("bindings");
 }
@@ -368,6 +376,7 @@ CwlExListener.prototype.enterStep = function(ctx) {
     this.pushWork("step", step);
     var stepcount = this.popWork("stepcount");
     this.pushWork("stepcount", stepcount+1);
+    this.pushWork("scatterinputs", []);
     if (ctx.inlineexpr() || ctx.inlinetool() || ctx.inlineworkflow()) {
         this.pushWork("inline", true);
     }
@@ -384,11 +393,12 @@ CwlExListener.prototype.enterSymbolassign = function(ctx) {
 CwlExListener.prototype.exitStep = function(ctx) {
     var sa = this.popWork("symbolassign");
     var step = this.popWork("step");
+    var emb = this.popWork("embedded");
     sa.map((m) => {
         step.out.push(m[1]);
 
         var tp;
-        this.workTop("embedded")["outputs"].map((op) => {
+        emb["outputs"].map((op) => {
             if (op["id"] == [m[1]]) {
                 tp = op["type"];
             }
@@ -400,9 +410,22 @@ CwlExListener.prototype.exitStep = function(ctx) {
         this.workTop("bindings")[m[0]] = {"source": step.id+"/"+m[1], "type": tp};
     });
     this.workTop("tool").steps.push(step);
-    this.popWork("embedded");
+    var si = this.popWork("scatterinputs");
     if (ctx.inlineexpr() || ctx.inlinetool() || ctx.inlineworkflow()) {
         this.popWork("inline");
+        si.map((inp) => {
+            var found = false;
+            emb["inputs"].map((m) => {
+                if (m["id"] == inp["id"]) {
+                    found = m;
+                }
+            });
+            if (found == false) {
+                emb["inputs"].push(inp);
+            } else {
+                found["type"] = inp["type"];
+            }
+        });
     }
 };
 
@@ -423,6 +446,7 @@ CwlExListener.prototype.exitScatter = function(ctx) {
     var sa = this.popWork("symbolassign");
     var step = this.workTop("step");
     step.scatter = [];
+    var scatterInputs = this.workTop("scatterinputs");
     sa.map((m) => {
         var name = m[0];
         var symbol = m[1];
@@ -431,6 +455,15 @@ CwlExListener.prototype.exitScatter = function(ctx) {
             step["in"][name] = {};
         }
         step["in"][name].source = symbol;
+
+        var bind = this.workTop("bindings")[symbol];
+        var tp;
+        if (bind.type.type == "array") {
+            tp = bind.type.items;
+        } else {
+            tp = "Any";
+        }
+        scatterInputs.push({id: name, type: tp});
     });
 }
 
@@ -499,7 +532,7 @@ CwlExListener.prototype.enterStepinput = function(ctx) {
 };
 
 CwlExListener.prototype.enterInlineexpr = function(ctx) {
-    this.workTop("step")["id"] = this.workTop("tool")["id"].substr(1) + "_" + this.workTop("stepcount");
+    this.workTop("step")["id"] = trimfrag(this.workTop("tool")["id"]) + "_" + this.workTop("stepcount");
     var rvar = this.workTop("symbolassign")[0][1];
     var r = {
         "id": rvar
@@ -533,11 +566,12 @@ CwlExListener.prototype.exitInlineexpr = function(ctx) {
 };
 
 CwlExListener.prototype.enterInlinetool = function(ctx) {
-    this.workTop("step")["id"] = this.workTop("tool")["id"].substr(1) + "_" + this.workTop("stepcount");
+    this.workTop("step")["id"] = trimfrag(this.workTop("tool")["id"]) + "_" + this.workTop("stepcount");
     var tool = {
         "class": "CommandLineTool",
         "inputs": [],
         "outputs": [],
+        "id": this.workTop("step")["id"]+"_embed",
         requirements: {
             "InlineJavascriptRequirement": {}
         }
@@ -568,7 +602,12 @@ CwlExListener.prototype.exitInlineworkflow = function(ctx) {
 };
 
 CwlExListener.prototype.enterInlineworkflowbody = function(ctx) {
-    this.pushWork("bindings", {});
+    var outerBindings = this.workTop("bindings");
+    var newbindings = {};
+    Object.keys(this.workTop("step")["in"]).map((inp) => {
+        newbindings[inp] = {source: inp, type: outerBindings[inp].type};
+    });
+    this.pushWork("bindings", newbindings);
     this.pushWork("stepcount", 0);
 };
 
@@ -645,7 +684,7 @@ CwlExListener.prototype.enterExprdecl = function(ctx) {
 
 CwlExListener.prototype.exitExprdecl = function(ctx) {
     var tool = this.popWork("tool");
-    this.graph[tool.id.substr(1)] = tool;
+    this.graph[trimfrag(tool.id)] = tool;
     this.popWork("add_fields_to");
     this.popWork("set_type_on");
     this.popWork("namefield");

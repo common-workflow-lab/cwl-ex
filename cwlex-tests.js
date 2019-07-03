@@ -19,5 +19,7 @@ var cases = [["tests/antlr/antlr.cwlex", "tests/antlr/antlr.cwl"],
              ["tests/site/cwlsite.cwlex", "tests/site/cwlsite.cwl"],
              ["tests/quote/quote.cwlex", "tests/quote/quote.cwl"],
              ["tests/const/const_values.cwlex", "tests/const/const_values.cwl"],
-             ["tests/req/req.cwlex", "tests/req/req.cwl"]         ];
+             ["tests/req/req.cwlex", "tests/req/req.cwl"],
+             ["tests/defexpr/defexpr.cwlex", "tests/defexpr/defexpr.cwl"]
+            ];
 cases.map((c) => test(c[0], c[1]));
