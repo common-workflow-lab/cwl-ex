@@ -24,7 +24,7 @@ reqs : (REQUIREMENTS | HINTS) ws+ OPENBRACE ws* (req_decl ws*)* CLOSEBRACE ;
 
 workflowbodyStatement : (const_assignment | step | reqs | ws) ;
 
-workflowbody : workflowbodyStatement* ws* RETURN ws+ symbolassignlist ;
+workflowbody : workflowbodyStatement* ws* (RETURN ws+ symbolassignlist)? ;
 
 symbolassign : name | symbol ws+ AS ws+ name ;
 
@@ -36,7 +36,9 @@ typedexpr : typedecl ws* (jsexpr | jsblock) ;
 
 inlineexpr : RUN ws+ EXPR ws+ stepinputs ws* typedexpr ;
 
-step : (symbolassignlist ws* EQ)? ws* scatter? ws* (inlineexpr | inlinetool | inlineworkflow | call) ws* NEWLINE ;
+steprun : inlineexpr | inlinetool | inlineworkflow | call ;
+
+step : (symbolassignlist ws* EQ)? ws* scatter? ws* steprun ws* NEWLINE ;
 
 scatter : SCATTER ws+ symbolassignlist ws+ DO ws+ ;
 

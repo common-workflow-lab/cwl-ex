@@ -107,7 +107,7 @@ CwlExListener.prototype.exitWorkflowdecl = function(ctx) {
     this.graph[wf.id.substr(1)] = wf;
     this.popWork("add_fields_to");
     this.popWork("namefield");
-    this.popWork("bindings", {});
+    this.popWork("bindings");
 };
 
 CwlExListener.prototype.enterWorkflowbody = function(ctx) {
@@ -117,10 +117,24 @@ CwlExListener.prototype.exitWorkflowbody = function(ctx) {
     var sa = this.popWork("symbolassign");
     var wf = this.workTop("tool");
     var bind = this.workTop("bindings");
-    sa.map((m) => {
-        var src = bind[m[1]];
-        wf.outputs.push({id: m[0], type: src.type, outputSource: src.source});
-    });
+    if (sa.length == 0) {
+        Object.keys(bind).map((k) => {
+            var found = false;
+            wf.inputs.map((inp) => {
+                if (inp.id == k) {
+                    found = true;
+                }
+            });
+            if (!found) {
+                wf.outputs.push({id: k, type: bind[k].type, outputSource: bind[k].source});
+            }
+        });
+    } else {
+        sa.map((m) => {
+            var src = bind[m[1]];
+            wf.outputs.push({id: m[0], type: src.type, outputSource: src.source});
+        });
+    }
 }
 
 CwlExListener.prototype.enterTooldecl = function(ctx) {
@@ -386,10 +400,34 @@ CwlExListener.prototype.enterStep = function(ctx) {
     var stepcount = this.popWork("stepcount");
     this.pushWork("stepcount", stepcount+1);
     this.pushWork("scatterinputs", []);
-    if (ctx.inlineexpr() || ctx.inlinetool() || ctx.inlineworkflow()) {
+    if (ctx.steprun().inlineexpr() || ctx.steprun().inlinetool() || ctx.steprun().inlineworkflow()) {
         this.pushWork("inline", true);
+    } else {
+        this.pushWork("inline", false);
     }
 };
+
+CwlExListener.prototype.enterSteprun = function(ctx) {
+    var si = this.popWork("scatterinputs");
+    if (this.workTop("inline")) {
+        var emb = {inputs: []};
+        this.workTop("step")["run"] = emb;
+
+        si.map((inp) => {
+            var found = false;
+            emb["inputs"].map((m) => {
+                if (m["id"] == inp["id"]) {
+                    found = m;
+                }
+            });
+            if (found == false) {
+                emb["inputs"].push(inp);
+            } else {
+                found["type"] = inp["type"];
+            }
+        });
+    }
+}
 
 CwlExListener.prototype.enterSymbolassign = function(ctx) {
     if (ctx.symbol()) {
@@ -430,23 +468,7 @@ CwlExListener.prototype.exitStep = function(ctx) {
         });
     }
     this.workTop("tool").steps.push(step);
-    var si = this.popWork("scatterinputs");
-    if (ctx.inlineexpr() || ctx.inlinetool() || ctx.inlineworkflow()) {
-        this.popWork("inline");
-        si.map((inp) => {
-            var found = false;
-            emb["inputs"].map((m) => {
-                if (m["id"] == inp["id"]) {
-                    found = m;
-                }
-            });
-            if (found == false) {
-                emb["inputs"].push(inp);
-            } else {
-                found["type"] = inp["type"];
-            }
-        });
-    }
+    var il = this.popWork("inline");
 };
 
 CwlExListener.prototype.enterCall = function(ctx) {
@@ -557,12 +579,9 @@ CwlExListener.prototype.enterInlineexpr = function(ctx) {
     var r = {
         "id": rvar
     };
-    var tool = {
-        "class": "ExpressionTool",
-        "inputs": [],
-        "outputs": [r]
-    };
-    this.workTop("step")["run"] = tool;
+    var tool = this.workTop("step")["run"];
+    tool["class"] = "ExpressionTool";
+    tool["outputs"] = [r];
 
     if (ctx.typedexpr().jsexpr()) {
         tool.expression = "${return {'"+rvar+"': "+ctx.typedexpr().jsexpr().getText()+"};}";
@@ -587,17 +606,13 @@ CwlExListener.prototype.exitInlineexpr = function(ctx) {
 
 CwlExListener.prototype.enterInlinetool = function(ctx) {
     this.workTop("step")["id"] = trimfrag(this.workTop("tool")["id"]) + "_" + this.workTop("stepcount");
-    var tool = {
-        "class": "CommandLineTool",
-        "inputs": [],
-        "outputs": [],
-        "id": this.workTop("step")["id"]+"_embed",
-        requirements: {
-            "InlineJavascriptRequirement": {}
-        }
+    var tool = this.workTop("step")["run"];
+    tool["class"] = "CommandLineTool";
+    tool["outputs"] = [];
+    tool["id"] = this.workTop("step")["id"]+"_embed";
+    tool["requirements"] = {
+        "InlineJavascriptRequirement": {}
     };
-    this.workTop("step")["run"] = tool;
-
     this.pushWork("tool", tool);
     this.pushWork("namefield", "id");
     this.pushWork("add_fields_to", tool.inputs);

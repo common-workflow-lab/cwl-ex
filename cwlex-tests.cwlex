@@ -15,8 +15,5 @@ def workflow main(
       diff -u $(inputs.converted) $(inputs.cases[1]) > $(inputs.cases[1].basename+".diff")
       return File(inputs.cases[1].basename+".diff") as results
     }
-    return results
   }
-
-  return results
 }
