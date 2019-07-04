@@ -1,0 +1,3 @@
+def workflow main(a = ["a", "b"] , c = ["d", "e"]) {
+  return merge_flattened(a, c) as result
+}

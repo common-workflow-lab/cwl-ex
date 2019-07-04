@@ -9,4 +9,5 @@ var input = fs.readFileSync(process.argv[2], 'utf8');
 
 var graph = cwlexConverter.convert(input);
 
+console.log("#!/usr/bin/env cwl-runner");
 console.log(stringify(graph, { space: 2 }));

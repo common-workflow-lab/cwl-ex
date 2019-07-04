@@ -131,8 +131,15 @@ CwlExListener.prototype.exitWorkflowbody = function(ctx) {
         });
     } else {
         sa.map((m) => {
-            var src = bind[m[1]];
-            wf.outputs.push({id: m[0], type: src.type, outputSource: src.source});
+            if (m[1] instanceof Object) {
+                wf.outputs.push({id: m[0],
+                                 type: m[1].type,
+                                 outputSource: m[1].source,
+                                 linkMerge: m[1].linkMerge});
+            } else {
+                var src = bind[m[1]];
+                wf.outputs.push({id: m[0], type: src.type, outputSource: src.source});
+            }
         });
     }
 }
@@ -154,7 +161,7 @@ CwlExListener.prototype.enterTooldecl = function(ctx) {
     this.pushWork("bindings", {});
 };
 
-var extractString = (ctx) => {
+var extractString = (ctx, removeAll) => {
     var txt = ctx.getText();
     if (ctx.SQSTRING && ctx.SQSTRING()) {
         txt = ctx.SQSTRING().getText();
@@ -165,7 +172,7 @@ var extractString = (ctx) => {
     var ret = "";
     var curq = "";
     for (var i = 0; i < txt.length; i++) {
-        if ((txt[i] == '"' || txt[i] == "'") && curq == "") {
+        if ((txt[i] == '"' || txt[i] == "'") && curq == "" && (removeAll || i == 0)) {
             curq = txt[i];
             continue;
         }
@@ -330,10 +337,10 @@ CwlExListener.prototype.enterCommand = function(ctx) {
     var top = this.workTop("tool");
     top["arguments"] = [];
     ctx.argument().map((arg) => {
-        top["arguments"].push(extractString(arg));
+        top["arguments"].push(extractString(arg, true));
     });
     if (ctx.redirect()) {
-        top["stdout"] = ctx.redirect().argument().getText();
+        top["stdout"] = extractString(ctx.redirect().argument());
     }
     if (ctx.scriptbody()) {
         top["requirements"].InitialWorkDirRequirement = {
@@ -432,6 +439,11 @@ CwlExListener.prototype.enterSteprun = function(ctx) {
 CwlExListener.prototype.enterSymbolassign = function(ctx) {
     if (ctx.symbol()) {
         this.workTop("symbolassign").push([ctx.name().getText(), ctx.symbol().getText()]);
+    } else if (ctx.linkmerge()) {
+        var link = {};
+        var items = this.linkMergeSource(link, ctx);
+        link.type = {"type": "array", "items": items};
+        this.workTop("symbolassign").push([ctx.name().getText(), link]);
     } else {
         this.workTop("symbolassign").push([ctx.name().getText(), ctx.name().getText()]);
     }
@@ -509,6 +521,31 @@ CwlExListener.prototype.exitScatter = function(ctx) {
     });
 }
 
+CwlExListener.prototype.linkMergeSource = function(link, ctx) {
+    var items = [];
+    if (ctx.linkmerge().MERGE_NESTED()) {
+        link.linkMerge = "merge_nested";
+        ctx.linkmerge().symbol().map((s) => {
+            var t = this.workTop("bindings")[s.getText()].type;
+            addUnique(items, t);
+        });
+    }
+    if (ctx.linkmerge().MERGE_FLATTENED()) {
+        link.linkMerge = "merge_flattened";
+        ctx.linkmerge().symbol().map((s) => {
+            var t = this.workTop("bindings")[s.getText()].type;
+            if ((t instanceof Object) && t.type == "array") {
+                addUnique(items, t.items);
+            } else {
+                addUnique(items, t);
+            }
+        });
+    }
+    link.source = ctx.linkmerge().symbol().map((s) => this.workTop("bindings")[s.getText()].source);
+
+    return items;
+};
+
 CwlExListener.prototype.enterStepinput = function(ctx) {
     var workin = this.workTop("step")["in"];
 
@@ -536,26 +573,7 @@ CwlExListener.prototype.enterStepinput = function(ctx) {
     } else if (ctx.jsblock()) {
         link["valueFrom"] = '$'+ctx.jsblock().getText();
     } else if (ctx.linkmerge()) {
-        var items = [];
-        if (ctx.linkmerge().MERGE_NESTED()) {
-            link.linkMerge = "merge_nested";
-            ctx.linkmerge().symbol().map((s) => {
-                var t = this.workTop("bindings")[s.getText()].type;
-                addUnique(items, t);
-            });
-        }
-        if (ctx.linkmerge().MERGE_FLATTENED()) {
-            link.linkMerge = "merge_flattened";
-            ctx.linkmerge().symbol().map((s) => {
-                var t = this.workTop("bindings")[s.getText()].type;
-                if ((t instanceof Object) && t.type == "array") {
-                    addUnique(items, t.items);
-                } else {
-                    addUnique(items, t);
-                }
-            });
-        }
-        link.source = ctx.linkmerge().symbol().map((s) => this.workTop("bindings")[s.getText()].source);
+        var items = this.linkMergeSource(link, ctx);
 
         if (this.workTop("inline")) {
             if (items.length == 1) {

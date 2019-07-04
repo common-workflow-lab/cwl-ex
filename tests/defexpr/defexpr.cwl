@@ -1,3 +1,4 @@
+#!/usr/bin/env cwl-runner
 {
   "class": "ExpressionTool",
   "cwlVersion": "v1.0",

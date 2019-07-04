@@ -1,3 +1,4 @@
+#!/usr/bin/env cwl-runner
 {
   "arguments": [
     "rev",
@@ -10,7 +11,7 @@
       "class": "ShellCommandRequirement"
     }
   ],
-  "id": "main",
+  "id": "#main",
   "inputs": [
   ],
   "outputs": [

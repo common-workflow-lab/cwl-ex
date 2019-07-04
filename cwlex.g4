@@ -26,7 +26,7 @@ workflowbodyStatement : (const_assignment | step | reqs | ws) ;
 
 workflowbody : workflowbodyStatement* ws* (RETURN ws+ symbolassignlist)? ;
 
-symbolassign : name | symbol ws+ AS ws+ name ;
+symbolassign : name | (symbol | linkmerge) ws+ AS ws+ name ;
 
 symbolassignlist : symbolassign ws* (COMMA ws* symbolassign ws*)* ;
 

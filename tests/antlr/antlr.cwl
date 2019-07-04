@@ -1,3 +1,4 @@
+#!/usr/bin/env cwl-runner
 {
   "arguments": [
     "antlr4",
@@ -8,7 +9,7 @@
   ],
   "class": "CommandLineTool",
   "cwlVersion": "v1.0",
-  "id": "antlr",
+  "id": "#antlr",
   "inputs": [
     {
       "default": {
@@ -23,7 +24,7 @@
     {
       "id": "parser",
       "outputBinding": {
-        "glob": "$(\"*.js\")"
+        "glob": "*.js"
       },
       "type": {
         "items": "File",

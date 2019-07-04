@@ -1,3 +1,4 @@
+#!/usr/bin/env cwl-runner
 {
   "arguments": [
     "echo",
@@ -6,14 +7,14 @@
   ],
   "class": "CommandLineTool",
   "cwlVersion": "v1.0",
-  "id": "main",
+  "id": "#main",
   "inputs": [
   ],
   "outputs": [
     {
       "id": "out",
       "outputBinding": {
-        "glob": "$(\"output.txt\")"
+        "glob": "output.txt"
       },
       "type": "File"
     }

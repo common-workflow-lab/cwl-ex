@@ -6,7 +6,8 @@ def workflow main(
    [File("tests/const/const_values.cwlex"), File("tests/const/const_values.cwl")],
    [File("tests/quote/quote.cwlex"), File("tests/quote/quote.cwl")],
    [File("tests/req/req.cwlex"), File("tests/req/req.cwl")],
-   [File("tests/site/cwlsite.cwlex"), File("tests/site/cwlsite.cwl")]
+   [File("tests/site/cwlsite.cwlex"), File("tests/site/cwlsite.cwl")],
+   [File("tests/linkmerge/linkmerge.cwlex"), File("tests/linkmerge/linkmerge.cwl")]
  ]
 ) {
   scatter cases do run workflow() {
@@ -15,5 +16,6 @@ def workflow main(
       diff -u $(inputs.converted) $(inputs.cases[1]) > $(inputs.cases[1].basename+".diff")
       return File(inputs.cases[1].basename+".diff") as results
     }
+    return results
   }
 }

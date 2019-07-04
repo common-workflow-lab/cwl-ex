@@ -1,7 +1,8 @@
+#!/usr/bin/env cwl-runner
 {
   "class": "Workflow",
   "cwlVersion": "v1.0",
-  "id": "main",
+  "id": "#main",
   "inputs": [
     {
       "default": 12,
