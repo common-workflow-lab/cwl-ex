@@ -362,103 +362,38 @@
       },
       "steps": [
         {
-          "id": "main_1",
+          "id": "makerdfs",
           "in": {
+            "schema": {
+              "valueFrom": "$(inputs.schemas.schema_in)"
+            },
             "schemas": {
               "source": "schemas"
+            },
+            "target_path": {
+              "valueFrom": "$(inputs.schemas.rdfs_target)"
             }
           },
           "out": [
             "rdfs",
             "targetdir"
           ],
-          "run": {
-            "class": "Workflow",
-            "id": "main_1_embed",
-            "inputs": [
-              {
-                "id": "schemas",
-                "type": {
-                  "items": {
-                    "fields": [
-                      {
-                        "name": "schema_in",
-                        "type": "File"
-                      },
-                      {
-                        "name": "context_target",
-                        "type": "string"
-                      },
-                      {
-                        "name": "rdfs_target",
-                        "type": "string"
-                      },
-                      {
-                        "name": "graph_target",
-                        "type": "string"
-                      }
-                    ],
-                    "type": "record"
-                  },
-                  "type": "array"
-                }
-              }
-            ],
-            "outputs": [
-              {
-                "id": "rdfs",
-                "outputSource": "makerdfs/rdfs",
-                "type": {
-                  "items": "File",
-                  "type": "array"
-                }
-              },
-              {
-                "id": "targetdir",
-                "outputSource": "makerdfs/targetdir",
-                "type": {
-                  "items": "string",
-                  "type": "array"
-                }
-              }
-            ],
-            "requirements": {
-              "InlineJavascriptRequirement": {
-              }
-            },
-            "steps": [
-              {
-                "id": "makerdfs",
-                "in": {
-                  "schema": {
-                    "source": "schemas",
-                    "valueFrom": "$(inputs.schema.schema_in)"
-                  },
-                  "target_path": {
-                    "valueFrom": "$(inputs.schema.rdfs_target)"
-                  }
-                },
-                "out": [
-                  "rdfs",
-                  "targetdir"
-                ],
-                "run": "#makerdfs",
-                "scatter": [
-                  "schema"
-                ]
-              }
-            ]
-          }
+          "run": "#makerdfs",
+          "scatter": [
+            "schemas"
+          ]
         },
         {
           "id": "makecontext",
           "in": {
             "schema": {
-              "source": "schemas",
-              "valueFrom": "$(inputs.schema.schema_in)"
+              "valueFrom": "$(inputs.schemas.schema_in)"
+            },
+            "schemas": {
+              "source": "schemas"
             },
             "target_path": {
-              "valueFrom": "$(inputs.schema.context_target)"
+              "valueFrom": "$(inputs.schemas.context_target)"
             }
           },
           "out": [
@@ -467,18 +402,20 @@
           ],
           "run": "#makecontext",
           "scatter": [
-            "schema"
+            "schemas"
           ]
         },
         {
           "id": "inheritance",
           "in": {
             "schema": {
-              "source": "schemas",
-              "valueFrom": "$(inputs.schema.schema_in)"
+              "valueFrom": "$(inputs.schemas.schema_in)"
+            },
+            "schemas": {
+              "source": "schemas"
             },
             "target_path": {
-              "valueFrom": "$(inputs.schema.graph_target)"
+              "valueFrom": "$(inputs.schemas.graph_target)"
             }
           },
           "out": [
@@ -487,7 +424,7 @@
           ],
           "run": "#inheritance",
           "scatter": [
-            "schema"
+            "schemas"
           ]
         },
         {
@@ -538,11 +475,11 @@
               "linkMerge": "merge_flattened",
               "source": [
                 "makedoc/targetdir",
-                "main_1/targetdir",
+                "makerdfs/targetdir",
                 "makecontext/targetdir",
+                "inheritance/targetdir",
                 "empty",
-                "makedoc/targetdir",
-                "inheritance/targetdir"
+                "makedoc/targetdir"
               ]
             },
             "primary": {
@@ -552,11 +489,11 @@
               "linkMerge": "merge_flattened",
               "source": [
                 "makedoc/html",
-                "main_1/rdfs",
+                "makerdfs/rdfs",
                 "makecontext/jsonld_context",
+                "inheritance/svg",
                 "brandimg",
-                "makedoc/extra_out",
-                "inheritance/svg"
+                "makedoc/extra_out"
               ]
             }
           },

@@ -657,8 +657,9 @@ CwlExListener.prototype.exitInlineworkflow = function(ctx) {
 CwlExListener.prototype.enterInlineworkflowbody = function(ctx) {
     var outerBindings = this.workTop("bindings");
     var newbindings = {};
-    Object.keys(this.workTop("step")["in"]).map((inp) => {
-        newbindings[inp] = {source: inp, type: outerBindings[inp].type};
+    var stepin = this.workTop("step")["in"];
+    Object.keys(stepin).map((inp) => {
+        newbindings[inp] = {source: inp, type: outerBindings[stepin[inp].source].type};
     });
     this.pushWork("bindings", newbindings);
     this.pushWork("stepcount", 0);

@@ -66,22 +66,20 @@ def workflow main(
   empty = ""
 ) {
 
-  rdfs, targetdir as rdfstargetdir = run workflow (schemas) {
-    rdfs, targetdir = scatter schemas as schema do
-                      makerdfs(schema=$(inputs.schema.schema_in),
-                             target_path=$(inputs.schema.rdfs_target))
-    return rdfs, targetdir
-  }
+    rdfs, targetdir as rdfstargetdir =
+      scatter schemas do
+        makerdfs(schema=$(inputs.schemas.schema_in),
+                 target_path=$(inputs.schemas.rdfs_target))
 
-  jsonld_context, targetdir as contexttargetdir =
-       scatter schemas as schema do
-	  makecontext(schema=$(inputs.schema.schema_in),
-                              target_path=$(inputs.schema.context_target))
+    jsonld_context, targetdir as contexttargetdir =
+      scatter schemas do
+	  makecontext(schema=$(inputs.schemas.schema_in),
+                      target_path=$(inputs.schemas.context_target))
 
-  svg, targetdir as svgtargetdir =
-        scatter schemas as schema do
-	    inheritance(schema=$(inputs.schema.schema_in),
-                              target_path=$(inputs.schema.graph_target))
+    svg, targetdir as svgtargetdir =
+      scatter schemas do
+	    inheritance(schema=$(inputs.schemas.schema_in),
+                        target_path=$(inputs.schemas.graph_target))
 
   html, targetdir as htmltargetdir, extra_out =
     scatter render as rdr do makedoc(
@@ -95,10 +93,10 @@ def workflow main(
       extra=$(inputs.rdr.extra))
 
   doc_out = run expr (primary=html,
-    secondary=merge_flattened(html, rdfs, jsonld_context,
-                              brandimg, extra_out, svg),
-    dirs=merge_flattened(htmltargetdir, rdfstargetdir, contexttargetdir,
-                         empty, htmltargetdir, svgtargetdir)) File
+    secondary=merge_flattened(html, rdfs, jsonld_context, svg,
+                              brandimg, extra_out),
+    dirs=merge_flattened(htmltargetdir, rdfstargetdir, contexttargetdir, svgtargetdir,
+                         empty, htmltargetdir)) File
   {
     var primary = inputs.primary[0];
     var secondary = inputs.secondary.slice(1);
