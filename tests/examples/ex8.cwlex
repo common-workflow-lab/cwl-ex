@@ -1,9 +1,9 @@
 def workflow main(msg string) {
-  run tool echo(msg) {
+  run tool (msg) {
     echo $(inputs.msg) > msg.txt
     return File("msg.txt") as echoed
   }
-  run tool reverse(echoed) {
+  run tool (echoed) {
     rev $(inputs.echoed) > reversed.txt
     return File("reversed.txt") as reversed
   }

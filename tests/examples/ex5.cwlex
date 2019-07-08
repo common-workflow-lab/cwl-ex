@@ -1,4 +1,4 @@
-def tool echo(msg string, newline? bool) {
+def tool echo(msg string, newline? boolean) {
   echo $(inputs.msg) > msg.txt
   ? -n newline
   return File("msg.txt") as out

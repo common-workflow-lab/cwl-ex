@@ -1,4 +1,4 @@
-def tool echo(msg[] string) {
+def tool echo(msg string[]) {
   echo > msg.txt
   ? for each in newline
   ? --say for each in newline

@@ -1,5 +1,5 @@
 def workflow main(msg File[]) {
-  scatter msg do run tool reverse() {
+  scatter msg do run tool () {
     rev $(inputs.msg) > reversed.txt
     return File("reversed.txt") as reversed
   }

@@ -34,7 +34,7 @@ linkmerge : (MERGE_NESTED | MERGE_FLATTENED) ws* OPENPAREN ws* symbol (COMMA ws*
 
 typedexpr : typedecl ws* (jsexpr | jsblock) ;
 
-inlineexpr : RUN ws+ EXPR ws+ stepinputs ws* typedexpr ;
+inlineexpr : RUN ws+ EXPR ws* stepinputs ws* typedexpr ;
 
 steprun : inlineexpr | inlinetool | inlineworkflow | call ;
 
@@ -81,7 +81,8 @@ struct_field : struct_field_name ws* COLON ws* const_value ;
 struct_const : OPENBRACE ws* struct_field? ws* (COMMA ws* struct_field ws*)* CLOSEBRACE ;
 list_entry : const_value ;
 list_const : OPENBRACKET ws* list_entry? ws* (COMMA ws* list_entry ws*)* CLOSEBRACKET ;
-const_value  : SQSTRING | DQSTRING | INTEGER | FLOAT | file_const | dir_const | struct_const | list_const ;
+const_value  : SQSTRING | DQSTRING | INTEGER | FLOAT | TRUE_SYMBOL | FALSE_SYMBOL |
+               file_const | dir_const | struct_const | list_const ;
 
 const_assignment : name ws* EQ ws* const_value ws*? NEWLINE ;
 
@@ -97,7 +98,7 @@ toolbody : (reqs | ws)* command RETURN ws+ output_assignment ws* (COMMA ws* outp
 
 name : symbol ;
 structdecl : STRUCT ws* OPENBRACE ws* (param_decl ws* (COMMA ws* param_decl ws*)*)? ws* CLOSEBRACE ;
-typekeyword : STRING | INT_SYMBOL | FLOAT_SYMBOL | FILE | DIRECTORY;
+typekeyword : STRING | INT_SYMBOL | FLOAT_SYMBOL | FILE | DIRECTORY | BOOLEAN_SYMBOL;
 typedecl : (typekeyword | structdecl) (OPENBRACKET CLOSEBRACKET)? ;
 
 input_params : param_list ;
@@ -118,7 +119,7 @@ ws : NEWLINE | SPACE | COMMENT ;
 keyword : WORKFLOW | TOOL | FILE | DIRECTORY | STDOUT | FOR | EACH | IN
          | DEF | RUN | RETURN | STRUCT | USING | MERGE_NESTED
 	 | MERGE_FLATTENED | INT_SYMBOL | FLOAT_SYMBOL | REQUIREMENTS
-	 | HINTS | IMPORT | AS | SCATTER | DO | EXPR ;
+	 | HINTS | IMPORT | AS | SCATTER | DO | EXPR | BOOLEAN_SYMBOL | TRUE_SYMBOL | FALSE_SYMBOL ;
 
 DOLLAR : '$' ;
 OPENPAREN : '(' ;
@@ -164,6 +165,7 @@ MERGE_FLATTENED: 'merge_flattened';
 STRING : 'string';
 INT_SYMBOL : 'int';
 FLOAT_SYMBOL : 'float';
+BOOLEAN_SYMBOL : 'boolean';
 REQUIREMENTS : 'requirements';
 HINTS : 'hints';
 IMPORT : 'import';
@@ -171,5 +173,7 @@ AS : 'as';
 DO : 'do';
 SCATTER : 'scatter';
 EXPR : 'expr';
+TRUE_SYMBOL : 'true' ;
+FALSE_SYMBOL : 'false' ;
 
 NOTWS : ~('\n' | ' ' | '\t') ;

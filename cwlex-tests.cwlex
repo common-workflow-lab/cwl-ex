@@ -7,7 +7,21 @@ def workflow main(
    [File("tests/quote/quote.cwlex"), File("tests/quote/quote.cwl")],
    [File("tests/req/req.cwlex"), File("tests/req/req.cwl")],
    [File("tests/site/cwlsite.cwlex"), File("tests/site/cwlsite.cwl")],
-   [File("tests/linkmerge/linkmerge.cwlex"), File("tests/linkmerge/linkmerge.cwl")]
+   [File("tests/linkmerge/linkmerge.cwlex"), File("tests/linkmerge/linkmerge.cwl")],
+   [File("tests/example/ex1.cwlex"), File("tests/example/ex1.cwl")]
+   [File("tests/example/ex2.cwlex"), File("tests/example/ex2.cwl")],
+   [File("tests/example/ex3.cwlex"), File("tests/example/ex3.cwl")],
+   [File("tests/example/ex4.cwlex"), File("tests/example/ex4.cwl")],
+   [File("tests/example/ex5.cwlex"), File("tests/example/ex5.cwl")],
+   [File("tests/example/ex6.cwlex"), File("tests/example/ex6.cwl")],
+   [File("tests/example/ex7.cwlex"), File("tests/example/ex7.cwl")],
+   [File("tests/example/ex8.cwlex"), File("tests/example/ex8.cwl")],
+   [File("tests/example/ex9.cwlex"), File("tests/example/ex9.cwl")],
+   [File("tests/example/ex10.cwlex"), File("tests/example/ex10.cwl")],
+   [File("tests/example/ex11.cwlex"), File("tests/example/ex11.cwl")],
+   [File("tests/example/ex12.cwlex"), File("tests/example/ex12.cwl")],
+   [File("tests/example/ex13.cwlex"), File("tests/example/ex13.cwl")],
+   [File("tests/example/ex14.cwlex"), File("tests/example/ex14.cwl")]
  ]
 ) {
   scatter cases do run workflow() {

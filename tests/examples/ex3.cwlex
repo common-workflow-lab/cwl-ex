@@ -1,6 +1,6 @@
 def tool reverse(msg File) {
   requirements {
-    DockerRequirement { dockerPull: debian:9 }
+    DockerRequirement { dockerPull: "debian:9" }
   }
   rev $(inputs.msg) > reversed.txt
   return File("reversed.txt") as reversed
