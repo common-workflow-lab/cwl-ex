@@ -65,7 +65,7 @@ Use `DockerRequirement` to run the tool in a Docker container.
 ```
 def tool reverse(msg File) {
   requirements {
-    DockerRequirement { dockerPull: debian:9 }
+    DockerRequirement { dockerPull: "debian:9" }
   }
   rev $(inputs.msg) > reversed.txt
   return File("reversed.txt") as reversed
@@ -90,7 +90,7 @@ After declaring the main command line, declare optional tool flags in
 the form `? <prefix> <parameter>`.
 
 ```
-def tool echo(msg string, newline? bool) {
+def tool echo(msg string, newline? boolean) {
   echo $(inputs.msg) > msg.txt
   ? -n newline
   return File("msg.txt") as out
@@ -105,7 +105,7 @@ Use `? <prefix> for each in <parameter>` to add each item with a
 leading option switch.
 
 ```
-def tool echo(msg[] string) {
+def tool echo(msg string[]) {
   echo > msg.txt
   ? for each in newline
   ? --say for each in newline
@@ -142,11 +142,11 @@ parameters are both `echoed` and `reversed`.
 
 ```
 def workflow main(msg string) {
-  run tool echo(msg) {
+  run tool (msg) {
     echo $(inputs.msg) > msg.txt
     return File("msg.txt") as echoed
   }
-  run tool reverse(echoed) {
+  run tool (echoed) {
     rev $(inputs.echoed) > reversed.txt
     return File("reversed.txt") as reversed
   }
@@ -171,7 +171,7 @@ def workflow main(msg File[]) {
 
 ```
 def workflow main(msg File[]) {
-  scatter msg do run tool reverse() {
+  scatter msg do run tool () {
     rev $(inputs.msg) > reversed.txt
     return File("reversed.txt") as reversed
   }
@@ -196,7 +196,7 @@ Use `run expr` to run a Javascript tool inline.  Requires a type declaration aft
 
 ```
 def workflow main(val int) {
-  run expr(val) int {
+  out = run expr(val) int {
     return inputs.val + 1;
   }
 }
@@ -219,7 +219,7 @@ def workflow main(msg string) {
 ### Merging several parameters into a single parameter
 
 ```
-def tool echo(msg[] string) {
+def tool echo(msg string[]) {
   echo > msg.txt
   ? for each in newline
   return File("msg.txt") as out

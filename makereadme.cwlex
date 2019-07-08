@@ -22,7 +22,7 @@ f = open(inputs["tmpl"]["path"])
 a = open("README.md", "w")
 for line in f:
   if line.startswith("$include: "):
-    with open(os.path.join(os.path.dirname(inputs["tmpl"]["path"]), line[9:].rstrip())) as b:
+    with open(os.path.join(os.path.dirname(inputs["tmpl"]["path"]), line[10:].rstrip())) as b:
       c = b.read()
       a.write(c)
       if c[-1] != "\\n":
