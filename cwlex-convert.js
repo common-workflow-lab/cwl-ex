@@ -366,7 +366,10 @@ CwlExListener.prototype.enterOptional_arg = function(ctx) {
             if (ctx.FOR()) {
                 var setbind = (tp) => {
                     if (tp instanceof Object) {
-                        tp.inputBinding = {prefix: ctx.argument().getText()};
+                        tp.inputBinding = {};
+                        if (ctx.argument()) {
+                            tp.inputBinding.prefix = ctx.argument().getText();
+                        }
                     }
                 };
                 if (inp.type instanceof Array) {

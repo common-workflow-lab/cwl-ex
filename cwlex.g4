@@ -90,7 +90,7 @@ output_assignment : typedexpr ws+ AS ws+ name | symbol (ws+ AS ws+ name)? ;
 optional_for_bind : symbol ;
 optional_for_over : symbol ;
 
-optional_arg : QUES ws+ argument ws+ (name | FOR ws+ EACH ws+ IN ws+ name)? ws* NEWLINE ;
+optional_arg : QUES ws+ (argument ws+ name | (argument ws+)? FOR ws+ EACH ws+ IN ws+ name) ws* NEWLINE ;
 
 returnvar : symbol ;
 toolbody : (reqs | ws)* command RETURN ws+ output_assignment ws* (COMMA ws* output_assignment ws*)* ;
