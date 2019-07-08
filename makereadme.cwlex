@@ -1,9 +1,9 @@
 def tool main(tmpl=
   File("README.md.tmpl",
-       "tests/examples/ex1.cwlex",
+       "tests/examples/reverse.cwlex",
        "tests/examples/ex2.cwlex",
        "tests/examples/ex3.cwlex",
-       "tests/examples/ex4.cwlex",
+       "tests/examples/echo.cwlex",
        "tests/examples/ex5.cwlex",
        "tests/examples/ex6.cwlex",
        "tests/examples/ex7.cwlex",
