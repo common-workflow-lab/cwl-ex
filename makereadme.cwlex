@@ -19,9 +19,9 @@ def tool main(tmpl=
 import os
 inputs = $(inputs)
 f = open(inputs["tmpl"]["path"])
-a = open("README.md.out", "w")
+a = open("README.md", "w")
 for line in f:
-  if line.startswith("$import: "):
+  if line.startswith("$include: "):
     with open(os.path.join(os.path.dirname(inputs["tmpl"]["path"]), line[9:].rstrip())) as b:
       c = b.read()
       a.write(c)
@@ -30,5 +30,5 @@ for line in f:
   else:
     a.write(line)
 >>>
-  return File("README.md.out") as readme
+  return File("README.md") as readme
 }

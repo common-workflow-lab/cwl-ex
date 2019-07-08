@@ -38,7 +38,7 @@ argument.  Redirect to `reversed.txt` and return `reversed.txt` as the
 output parameter `reversed`.
 
 ```
-$import: ex1.cwlex
+$include: ex1.cwlex
 ```
 
 ### Run a shell script
@@ -47,7 +47,7 @@ You can put an arbitrary script between `<<<` and `>>>`.  It will be
 created at runtime in a temporary file and added to the command line.
 
 ```
-$import: ex2.cwlex
+$include: ex2.cwlex
 ```
 
 ### Run in a Docker container
@@ -55,7 +55,7 @@ $import: ex2.cwlex
 Use `DockerRequirement` to run the tool in a Docker container.
 
 ```
-$import: ex3.cwlex
+$include: ex3.cwlex
 ```
 
 ### Define default parameters
@@ -63,7 +63,7 @@ $import: ex3.cwlex
 You can set default values for input parameters.
 
 ```
-$import: ex4.cwlex
+$include: ex4.cwlex
 ```
 
 ### Optional arguments
@@ -73,7 +73,7 @@ After declaring the main command line, declare optional tool flags in
 the form `? <prefix> <parameter>`.
 
 ```
-$import: ex5.cwlex
+$include: ex5.cwlex
 ```
 
 ### Array arguments
@@ -84,7 +84,7 @@ Use `? <prefix> for each in <parameter>` to add each item with a
 leading option switch.
 
 ```
-$import: ex6.cwlex
+$include: ex6.cwlex
 ```
 
 ## Workflows
@@ -96,7 +96,7 @@ parameter `reversed` of `reverse` to `r`.  The output of the workflow
 is the output parameter `r`.
 
 ```
-$import: ex7.cwlex
+$include: ex7.cwlex
 ```
 
 ### Workflow with tools defined inline
@@ -108,7 +108,7 @@ all parameters defined in the workflow.  In this example, the output
 parameters are both `echoed` and `reversed`.
 
 ```
-$import: ex8.cwlex
+$include: ex8.cwlex
 ```
 
 ### Scatter a tool over an array
@@ -119,11 +119,11 @@ output of the step will be an array of values consisting of the output
 of each scatter step.
 
 ```
-$import: ex9.cwlex
+$include: ex9.cwlex
 ```
 
 ```
-$import: ex10.cwlex
+$include: ex10.cwlex
 ```
 
 ### Javascript expressions
@@ -131,13 +131,13 @@ $import: ex10.cwlex
 Javascript expression tools can be declared and called.  Requires a type declaration after the inputs.
 
 ```
-$import: ex11.cwlex
+$include: ex11.cwlex
 ```
 
 Use `run expr` to run a Javascript tool inline.  Requires a type declaration after the inputs.
 
 ```
-$import: ex12.cwlex
+$include: ex12.cwlex
 ```
 
 ### Constants and expressions in step inputs
@@ -145,11 +145,11 @@ $import: ex12.cwlex
 Step inputs can assigned constant and expression values.
 
 ```
-$import: ex13.cwlex
+$include: ex13.cwlex
 ```
 
 ### Merging several parameters into a single parameter
 
 ```
-$import: ex14.cwlex
+$include: ex14.cwlex
 ```
