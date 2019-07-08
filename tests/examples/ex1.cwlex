@@ -1,0 +1,4 @@
+def tool reverse(msg File) {
+  rev $(inputs.msg) > reversed.txt
+  return File("reversed.txt") as reversed
+}

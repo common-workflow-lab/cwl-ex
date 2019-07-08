@@ -1,0 +1,5 @@
+def tool echo(msg string, newline? bool) {
+  echo $(inputs.msg) > msg.txt
+  ? -n newline
+  return File("msg.txt") as out
+}

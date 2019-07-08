@@ -1,0 +1,6 @@
+def tool echo(msg[] string) {
+  echo > msg.txt
+  ? for each in newline
+  ? --say for each in newline
+  return File("msg.txt") as out
+}

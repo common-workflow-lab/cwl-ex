@@ -1,0 +1,7 @@
+def expr addone(v int) int {
+  return inputs.v + 1;
+}
+
+def workflow main(val int) {
+  q = addone(val)
+}

@@ -1,0 +1,7 @@
+import "echo.cwlex" as echo
+
+def workflow main(msg string) {
+  out as e1 = echo(msg="hello world")
+  out as e2 = echo(msg=$("hello "+inputs.msg))
+  return e1, e2
+}

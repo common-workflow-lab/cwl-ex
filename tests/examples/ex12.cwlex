@@ -1,0 +1,5 @@
+def workflow main(val int) {
+  run expr(val) int {
+    return inputs.val + 1;
+  }
+}

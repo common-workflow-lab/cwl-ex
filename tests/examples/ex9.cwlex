@@ -1,0 +1,6 @@
+import "reverse.cwlex" as reverse
+
+def workflow main(msg File[]) {
+  reversed as r = scatter msg do reverse()
+  return r
+}

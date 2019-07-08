@@ -1,0 +1,34 @@
+def tool main(tmpl=
+  File("README.md.tmpl",
+       "tests/examples/ex1.cwlex",
+       "tests/examples/ex2.cwlex",
+       "tests/examples/ex3.cwlex",
+       "tests/examples/ex4.cwlex",
+       "tests/examples/ex5.cwlex",
+       "tests/examples/ex6.cwlex",
+       "tests/examples/ex7.cwlex",
+       "tests/examples/ex8.cwlex",
+       "tests/examples/ex9.cwlex",
+       "tests/examples/ex10.cwlex",
+       "tests/examples/ex11.cwlex",
+       "tests/examples/ex12.cwlex",
+       "tests/examples/ex13.cwlex",
+       "tests/examples/ex14.cwlex"))
+{
+  python <<<
+import os
+inputs = $(inputs)
+f = open(inputs["tmpl"]["path"])
+a = open("README.md.out", "w")
+for line in f:
+  if line.startswith("$import: "):
+    with open(os.path.join(os.path.dirname(inputs["tmpl"]["path"]), line[9:].rstrip())) as b:
+      c = b.read()
+      a.write(c)
+      if c[-1] != "\\n":
+        a.write("\\n")
+  else:
+    a.write(line)
+>>>
+  return File("README.md.out") as readme
+}
