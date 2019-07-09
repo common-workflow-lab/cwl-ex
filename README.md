@@ -229,3 +229,26 @@ def workflow main(v1="hello", v2="world") {
   echo(msg=merge_flattened(v1, v2))
 }
 ```
+
+# Developing
+
+Generate the parser (requires antlr4):
+
+```
+$ cwl-runner antlr.cwl
+```
+
+Install dependencies (requires node.js and npm):
+
+```
+$ npm install
+```
+
+Run tests:
+
+```
+$ ./cwlex.js cwlex-tests.cwlex > cwlex-tests.cwl
+$ cwl-runner cwlex-tests.cwl
+```
+
+TODO: Create Docker image with antlr4, nodejs and dependencies.
