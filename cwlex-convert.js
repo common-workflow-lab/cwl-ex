@@ -827,7 +827,9 @@ CwlExListener.prototype.enterImport_decl = function(ctx) {
     var fs = require('fs');
     var id = extractString(ctx);
 
-//    this.baseurl.split('/').slice(0, -1) + {
+    var components = this.baseurl.split('/').slice(0, -1);
+    components.push(id);
+    id = components.join("/");
 
     var input = fs.readFileSync(id, 'utf8');
     var yaml = require('js-yaml');

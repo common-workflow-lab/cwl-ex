@@ -5,9 +5,14 @@ var stringify = require('json-stable-stringify');
 
 var fs = require('fs');
 
-var input = fs.readFileSync(process.argv[2], 'utf8');
+var infile = process.argv[2];
+if (infile[0] != "/") {
+    infile = process.cwd() +"/"+infile;
+}
 
-var graph = cwlexConverter.convert(input);
+var input = fs.readFileSync(infile, 'utf8');
+
+var graph = cwlexConverter.convert(input, infile);
 
 console.log("#!/usr/bin/env cwl-runner");
 console.log(stringify(graph, { space: 2 }));

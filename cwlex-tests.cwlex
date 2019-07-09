@@ -2,33 +2,33 @@ import "cwlex.cwlex" as cwlex
 
 def workflow main(
  cases = [
-   [File("tests/antlr/antlr.cwlex"), File("tests/antlr/antlr.cwl")],
-   [File("tests/const/const_values.cwlex"), File("tests/const/const_values.cwl")],
-   [File("tests/quote/quote.cwlex"), File("tests/quote/quote.cwl")],
-   [File("tests/req/req.cwlex"), File("tests/req/req.cwl")],
-   [File("tests/site/cwlsite.cwlex"), File("tests/site/cwlsite.cwl")],
-   [File("tests/linkmerge/linkmerge.cwlex"), File("tests/linkmerge/linkmerge.cwl")],
-   [File("tests/example/ex1.cwlex"), File("tests/example/ex1.cwl")]
-   [File("tests/example/ex2.cwlex"), File("tests/example/ex2.cwl")],
-   [File("tests/example/ex3.cwlex"), File("tests/example/ex3.cwl")],
-   [File("tests/example/ex4.cwlex"), File("tests/example/ex4.cwl")],
-   [File("tests/example/ex5.cwlex"), File("tests/example/ex5.cwl")],
-   [File("tests/example/ex6.cwlex"), File("tests/example/ex6.cwl")],
-   [File("tests/example/ex7.cwlex"), File("tests/example/ex7.cwl")],
-   [File("tests/example/ex8.cwlex"), File("tests/example/ex8.cwl")],
-   [File("tests/example/ex9.cwlex"), File("tests/example/ex9.cwl")],
-   [File("tests/example/ex10.cwlex"), File("tests/example/ex10.cwl")],
-   [File("tests/example/ex11.cwlex"), File("tests/example/ex11.cwl")],
-   [File("tests/example/ex12.cwlex"), File("tests/example/ex12.cwl")],
-   [File("tests/example/ex13.cwlex"), File("tests/example/ex13.cwl")],
-   [File("tests/example/ex14.cwlex"), File("tests/example/ex14.cwl")]
+   [Directory("tests/antlr"), "antlr.cwlex", File("tests/antlr/antlr.cwl")],
+   [Directory("tests/const"), "const_values.cwlex", File("tests/const/const_values.cwl")],
+   [Directory("tests/quote"), "quote.cwlex", File("tests/quote/quote.cwl")],
+   [Directory("tests/req"), "req.cwlex", File("tests/req/req.cwl")],
+   [Directory("tests/site"), "cwlsite.cwlex", File("tests/site/cwlsite.cwl")],
+   [Directory("tests/linkmerge"), "linkmerge.cwlex", File("tests/linkmerge/linkmerge.cwl")],
+   [Directory("tests/examples"), "reverse.cwlex", File("tests/examples/reverse.cwl")],
+   [Directory("tests/examples"), "ex2.cwlex", File("tests/examples/ex2.cwl")],
+   [Directory("tests/examples"), "ex3.cwlex", File("tests/examples/ex3.cwl")],
+   [Directory("tests/examples"), "echo.cwlex", File("tests/examples/echo.cwl")],
+   [Directory("tests/examples"), "ex5.cwlex", File("tests/examples/ex5.cwl")],
+   [Directory("tests/examples"), "ex6.cwlex", File("tests/examples/ex6.cwl")],
+   [Directory("tests/examples"), "ex7.cwlex", File("tests/examples/ex7.cwl")],
+   [Directory("tests/examples"), "ex8.cwlex", File("tests/examples/ex8.cwl")],
+   [Directory("tests/examples"), "ex9.cwlex", File("tests/examples/ex9.cwl")],
+   [Directory("tests/examples"), "ex10.cwlex", File("tests/examples/ex10.cwl")],
+   [Directory("tests/examples"), "ex11.cwlex", File("tests/examples/ex11.cwl")],
+   [Directory("tests/examples"), "ex12.cwlex", File("tests/examples/ex12.cwl")],
+   [Directory("tests/examples"), "ex13.cwlex", File("tests/examples/ex13.cwl")],
+   [Directory("tests/examples"), "ex14.cwlex", File("tests/examples/ex14.cwl")]
  ]
 ) {
   scatter cases do run workflow() {
-    cwlex(cases, inp=$(inputs.cases[0]))
+    cwlex(cases, inpdir=$(inputs.cases[0]), inpfile=$(inputs.cases[1]))
     run tool(cases, converted) {
-      diff -u $(inputs.converted) $(inputs.cases[1]) > $(inputs.cases[1].basename+".diff")
-      return File(inputs.cases[1].basename+".diff") as results
+      diff -u $(inputs.converted) $(inputs.cases[2]) > $(inputs.cases[2].basename+".diff")
+      return File(inputs.cases[2].basename+".diff") as results
     }
     return results
   }
