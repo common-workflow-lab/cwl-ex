@@ -72,7 +72,7 @@
       "outputs": [
         {
           "id": "r",
-          "outputSource": "reverse/reversed",
+          "outputSource": "reverse_2/reversed",
           "type": "File"
         }
       ],
@@ -90,7 +90,7 @@
       },
       "steps": [
         {
-          "id": "echo",
+          "id": "echo_1",
           "in": {
             "msg": {
               "source": "msg"
@@ -102,10 +102,10 @@
           "run": "#echo"
         },
         {
-          "id": "reverse",
+          "id": "reverse_2",
           "in": {
-            "e": {
-              "source": "echo/out"
+            "msg": {
+              "source": "echo_1/out"
             }
           },
           "out": [

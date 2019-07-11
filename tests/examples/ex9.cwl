@@ -45,7 +45,7 @@
       "outputs": [
         {
           "id": "r",
-          "outputSource": "reverse/reversed",
+          "outputSource": "reverse_1/reversed",
           "type": {
             "items": "File",
             "type": "array"
@@ -66,7 +66,7 @@
       },
       "steps": [
         {
-          "id": "reverse",
+          "id": "reverse_1",
           "in": {
             "msg": {
               "source": "msg"

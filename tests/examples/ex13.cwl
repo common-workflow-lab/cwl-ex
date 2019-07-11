@@ -43,12 +43,12 @@
       "outputs": [
         {
           "id": "e1",
-          "outputSource": "echo/out",
+          "outputSource": "echo_1/out",
           "type": "File"
         },
         {
           "id": "e2",
-          "outputSource": "echo/out",
+          "outputSource": "echo_2/out",
           "type": "File"
         }
       ],
@@ -66,7 +66,7 @@
       },
       "steps": [
         {
-          "id": "echo",
+          "id": "echo_1",
           "in": {
             "msg": {
               "default": "hello world"
@@ -78,7 +78,7 @@
           "run": "#echo"
         },
         {
-          "id": "echo",
+          "id": "echo_2",
           "in": {
             "msg": {
               "valueFrom": "$(\"hello \"+inputs.msg)"

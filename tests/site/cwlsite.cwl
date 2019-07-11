@@ -362,7 +362,7 @@
       },
       "steps": [
         {
-          "id": "makerdfs",
+          "id": "makerdfs_1",
           "in": {
             "schema": {
               "valueFrom": "$(inputs.schemas.schema_in)"
@@ -384,7 +384,7 @@
           ]
         },
         {
-          "id": "makecontext",
+          "id": "makecontext_2",
           "in": {
             "schema": {
               "valueFrom": "$(inputs.schemas.schema_in)"
@@ -406,7 +406,7 @@
           ]
         },
         {
-          "id": "inheritance",
+          "id": "inheritance_3",
           "in": {
             "schema": {
               "valueFrom": "$(inputs.schemas.schema_in)"
@@ -428,7 +428,7 @@
           ]
         },
         {
-          "id": "makedoc",
+          "id": "makedoc_4",
           "in": {
             "brand": {
               "valueFrom": "$(inputs.rdr.brandimg)"
@@ -474,26 +474,26 @@
             "dirs": {
               "linkMerge": "merge_flattened",
               "source": [
-                "makedoc/targetdir",
-                "makerdfs/targetdir",
-                "makecontext/targetdir",
-                "inheritance/targetdir",
+                "makedoc_4/targetdir",
+                "makerdfs_1/targetdir",
+                "makecontext_2/targetdir",
+                "inheritance_3/targetdir",
                 "empty",
-                "makedoc/targetdir"
+                "makedoc_4/targetdir"
               ]
             },
             "primary": {
-              "source": "makedoc/html"
+              "source": "makedoc_4/html"
             },
             "secondary": {
               "linkMerge": "merge_flattened",
               "source": [
-                "makedoc/html",
-                "makerdfs/rdfs",
-                "makecontext/jsonld_context",
-                "inheritance/svg",
+                "makedoc_4/html",
+                "makerdfs_1/rdfs",
+                "makecontext_2/jsonld_context",
+                "inheritance_3/svg",
                 "brandimg",
-                "makedoc/extra_out"
+                "makedoc_4/extra_out"
               ]
             }
           },

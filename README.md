@@ -127,7 +127,7 @@ import "reverse.cwlex" as reverse
 
 def workflow main(msg string) {
   out as e = echo(msg)
-  reversed as r = reverse(e)
+  reversed as r = reverse(msg=e)
   return r
 }
 ```

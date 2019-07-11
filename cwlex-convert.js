@@ -536,12 +536,29 @@ CwlExListener.prototype.exitStep = function(ctx) {
 };
 
 CwlExListener.prototype.enterCall = function(ctx) {
-    this.workTop("step")["id"] = ctx.symbol().getText();
+    this.workTop("step")["id"] = ctx.symbol().getText() + "_" + this.workTop("stepcount");
     this.workTop("step")["run"] = this.graph[ctx.symbol().getText()]["id"];
     this.pushWork("embedded", this.graph[ctx.symbol().getText()]);
 };
 
 CwlExListener.prototype.exitCall = function(ctx) {
+    var stepin = this.workTop("step")["in"];
+    var inkeys = Object.keys(stepin);
+    var find;
+    this.workTop("embedded")["inputs"].map((m) => {
+        if (m["default"] === undefined) {
+            if (!find) {
+                find = m;
+            } else {
+                return;
+            }
+        }
+    });
+    if (find !== undefined && ctx.stepinputs().stepinput().length == 1
+       && find.id != inkeys[0]) {
+        stepin[find.id] = stepin[inkeys[0]];
+        stepin[inkeys[0]] = undefined;
+    }
 }
 
 CwlExListener.prototype.enterScatter = function(ctx) {

@@ -34,7 +34,7 @@
       "outputs": [
         {
           "id": "q",
-          "outputSource": "addone/out",
+          "outputSource": "addone_1/out",
           "type": "int"
         }
       ],
@@ -52,9 +52,9 @@
       },
       "steps": [
         {
-          "id": "addone",
+          "id": "addone_1",
           "in": {
-            "val": {
+            "v": {
               "source": "val"
             }
           },

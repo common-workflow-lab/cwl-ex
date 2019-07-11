@@ -49,7 +49,7 @@
       "outputs": [
         {
           "id": "echo_out",
-          "outputSource": "echo/out",
+          "outputSource": "echo_1/out",
           "type": "File"
         }
       ],
@@ -67,7 +67,7 @@
       },
       "steps": [
         {
-          "id": "echo",
+          "id": "echo_1",
           "in": {
             "msg": {
               "linkMerge": "merge_flattened",
