@@ -31,6 +31,10 @@ CwlExListener.prototype.popWork = function(s) {
     return this.current[s].pop();
 };
 
+CwlExListener.prototype.throwError = function(ctx, msg) {
+    throw this.baseurl + ":" + ctx.start.line + ":" + ctx.start.column + " " + msg;
+}
+
 CwlExListener.prototype.enterWorkflowdecl = function(ctx) {
     var wf = {
         "class": "Workflow",
@@ -57,7 +61,7 @@ CwlExListener.prototype.enterWorkflowdecl = function(ctx) {
 CwlExListener.prototype.enterParam_decl = function(ctx) {
     var field = {};
     if (!ctx.name()) {
-        throw "Parse error, missing name from parameter declaration on line "+ctx.start.line;
+        this.throwError(ctx, "Parse error, missing name from parameter declaration");
     }
     field[this.workTop("namefield")] = ctx.name().getText();
     this.workTop("add_fields_to").push(field);
@@ -81,7 +85,7 @@ CwlExListener.prototype.exitParam_decl = function(ctx) {
 
 CwlExListener.prototype.enterTypedecl = function(ctx) {
     if (ctx.children == null) {
-        throw "Parse error reading type declaration on line " + ctx.start.line;
+        this.throwError(ctx, "Parse error reading type declaration");
     }
 
     if (ctx.typekeyword()) {
@@ -202,7 +206,7 @@ CwlExListener.prototype.enterConst_value = function(ctx) {
     var newinput = {};
 
     if (ca.children == null) {
-        throw "Parse error reading constant value on line " + ctx.start.line;
+        this.throwError(ctx, "Parse error reading constant value");
     }
 
     if (ca.SQSTRING()) {
@@ -300,8 +304,10 @@ CwlExListener.prototype.enterOutput_assignment = function(ctx) {
     var name;
     if (oa.name()) {
         name = oa.name().getText();
-    } else {
+    } else if (oa.symbol()) {
         name = oa.symbol().getText();
+    } else {
+        name = "out";
     }
 
     var out;
@@ -433,6 +439,9 @@ CwlExListener.prototype.enterStep = function(ctx) {
     if (ctx.steprun().inlineexpr() || ctx.steprun().inlinetool() || ctx.steprun().inlineworkflow()) {
         this.pushWork("inline", true);
     } else {
+        if (!ctx.symbolassignlist()) {
+            this.throwError(ctx, "Must assign outputs on non-inline calls");
+        }
         this.pushWork("inline", false);
     }
 };
@@ -485,6 +494,23 @@ CwlExListener.prototype.exitStep = function(ctx) {
             }
             this.workTop("bindings")[op.id] = {"source": step.id+"/"+op.id, "type": tp};
         });
+    } if (sa.length == 1 && sa[0][0] == sa[0][1]) {
+        var m = sa[0];
+        var find;
+        if (emb["outputs"].length != 1) {
+            var found = false;
+            emb["outputs"].map((op) => {
+                if (op["id"] == [m[1]]) {
+                    found = true;
+                }
+            });
+            if (!found) {
+                this.throwError(ctx, "Called tool must have exactly one output, otherwise step outputs must assign tool output parameters.");
+            }
+        }
+        step.out.push(emb["outputs"][0]["id"]);
+        var tp = emb["outputs"][0]["type"];
+        this.workTop("bindings")[m[0]] = {"source": step.id+"/"+emb["outputs"][0]["id"], "type": tp};
     } else {
         sa.map((m) => {
             step.out.push(m[1]);
@@ -495,6 +521,9 @@ CwlExListener.prototype.exitStep = function(ctx) {
                     tp = op["type"];
                 }
             });
+            if (tp === undefined) {
+                this.throwError(ctx, "No output parameter '"+m[1]+"'");
+            }
             if (step["scatter"]) {
                 tp = {type: "array", items: tp};
             }
@@ -569,28 +598,19 @@ CwlExListener.prototype.linkMergeSource = function(link, ctx) {
     return items;
 };
 
-CwlExListener.prototype.enterStepinput = function(ctx) {
-    var workin = this.workTop("step")["in"];
-
-    if (!workin[ctx.name().getText()]) {
-        workin[ctx.name().getText()] = {};
-    }
-    var link = workin[ctx.name().getText()];
-
+CwlExListener.prototype.exitStepinputSourceOrValue = function(ctx) {
+    var link = this.workTop("steplink");
     if (ctx.symbol()) {
         var bind = this.workTop("bindings")[ctx.symbol().getText()];
+        if (bind === undefined) {
+            this.throwError(ctx, "Unknown variable '"+ctx.symbol().getText()+"'");
+        }
         link.source = bind.source;
         if (this.workTop("inline")) {
-            this.workTop("embedded")["inputs"].push({id: ctx.name().getText(), type: bind.type});
+            this.workTop("embedded")["inputs"].push({id: this.workTop("linkname"), type: bind.type});
         }
-    } else if (ctx.SQSTRING()) {
-        link["default"] = extractString(ctx);
-    } else if (ctx.DQSTRING()) {
-        link["default"] = extractString(ctx);
-    } else if (ctx.INTEGER()) {
-        link["default"] = parseInt(ctx.INTEGER().getText());
-    } else if (ctx.FLOAT()) {
-        link["float"] = parseInt(ctx.FLOAT().getText());
+    } else if (ctx.const_value()) {
+        link["default"] = this.popWork("const_value")["default"];
     } else if (ctx.jsexpr()) {
         link["valueFrom"] = '$'+ctx.jsexpr().getText();
     } else if (ctx.jsblock()) {
@@ -602,25 +622,65 @@ CwlExListener.prototype.enterStepinput = function(ctx) {
             if (items.length == 1) {
                 items = items[0];
             }
-            this.workTop("embedded").inputs.push({id: ctx.name().getText(),
+            this.workTop("embedded").inputs.push({id: this.workTop("linkname"),
                                                   type: {"type": "array", "items": items}});
         }
     } else {
-        var bind = this.workTop("bindings")[ctx.name().getText()];
-        if (!bind) {
-            throw "Unknown variable '"+ctx.name().getText()+"' on line "+ctx.start.line;
+        this.throwError(ctx, "BUG! can't happen");
+    }
+};
+
+CwlExListener.prototype.enterStepinput = function(ctx) {
+    var workin = this.workTop("step")["in"];
+
+    var name;
+    if (ctx.name()) {
+        name = ctx.name().getText();
+    } else {
+        var find;
+        this.workTop("embedded")["inputs"].map((m) => {
+            if (m["default"] === undefined) {
+                if (!find) {
+                    find = m;
+                } else {
+                    this.throwError("Called tool must have exactly one required input, otherwise inputs must be named");
+                }
+            }
+        });
+        if (!find) {
+            this.throwError("Called tool must have exactly one required input, otherwise inputs must be named");
+        }
+        name = this.workTop("embedded")["inputs"][0].id;
+    }
+
+    if (!workin[name]) {
+        workin[name] = {};
+    }
+    var link = workin[name];
+    this.pushWork("steplink", link);
+    this.pushWork("linkname", name);
+
+    if (!ctx.stepinputSourceOrValue()) {
+        var bind = this.workTop("bindings")[name];
+        if (bind === undefined) {
+            this.throwError(ctx, "Unknown variable '"+name+"'");
         }
         link.source = bind.source;
         if (this.workTop("inline")) {
-            this.workTop("embedded")["inputs"].push({id: ctx.name().getText(), type: bind.type});
+            this.workTop("embedded")["inputs"].push({id: name, type: bind.type});
         }
     }
+};
+
+CwlExListener.prototype.exitStepinput = function(ctx) {
+    this.popWork("steplink");
+    this.popWork("linkname");
 };
 
 CwlExListener.prototype.enterInlineexpr = function(ctx) {
     this.workTop("step")["id"] = trimfrag(this.workTop("tool")["id"]) + "_" + this.workTop("stepcount");
     if (!this.workTop("symbolassign")[0]) {
-        throw "Missing output assignment on line "+ctx.start.line;
+        this.throwError(ctx, "Missing output assignment");
     }
     var rvar = this.workTop("symbolassign")[0][1];
     var r = {
@@ -631,7 +691,7 @@ CwlExListener.prototype.enterInlineexpr = function(ctx) {
     tool["outputs"] = [r];
 
     if (!ctx.typedexpr()) {
-        throw "Parse error in inline expression on line "+ctx.start.line;
+        this.throwError(ctx, "Parse error in inline expression");
     }
 
     if (ctx.typedexpr().jsexpr()) {
@@ -710,10 +770,6 @@ var addUnique = (items, a) => {
         }
     }
     items.push(a);
-};
-
-CwlExListener.prototype.enterSourceassign = function(ctx) {
-
 };
 
 CwlExListener.prototype.exitReq_decl = function(ctx) {

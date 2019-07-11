@@ -1,0 +1,8 @@
+def tool echo(msg string) {
+  echo $(inputs.msg) > blub.txt
+  return File("blub.txt")
+}
+
+def workflow main() {
+  e = echo("hello world")
+}

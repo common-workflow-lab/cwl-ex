@@ -50,7 +50,9 @@ inlineworkflow : RUN ws+ WORKFLOW ws* stepinputs ws* OPENBRACE ws* inlineworkflo
 
 call : symbol ws* stepinputs;
 
-stepinput : name | name ws* EQ ws* (symbol | SQSTRING | DQSTRING | INTEGER | FLOAT | DOLLAR jsexpr | DOLLAR jsblock | linkmerge) ;
+stepinputSourceOrValue : symbol | const_value | DOLLAR jsexpr | DOLLAR jsblock | linkmerge ;
+
+stepinput : name | name ws* EQ ws* stepinputSourceOrValue | stepinputSourceOrValue ;
 
 stepinputs : OPENPAREN ws* (stepinput ws* (ws* COMMA ws* stepinput)* ws*)? CLOSEPAREN ;
 
@@ -86,7 +88,7 @@ const_value  : SQSTRING | DQSTRING | INTEGER | FLOAT | TRUE_SYMBOL | FALSE_SYMBO
 
 const_assignment : name ws* EQ ws* const_value ws*? NEWLINE ;
 
-output_assignment : typedexpr ws+ AS ws+ name | symbol (ws+ AS ws+ name)? ;
+output_assignment : typedexpr | typedexpr ws+ AS ws+ name | symbol (ws+ AS ws+ name)? ;
 
 optional_for_bind : symbol ;
 optional_for_over : symbol ;

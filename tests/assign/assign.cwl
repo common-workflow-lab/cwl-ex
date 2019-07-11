@@ -3,24 +3,22 @@
   "$graph": [
     {
       "arguments": [
-        "echo"
+        "echo",
+        "$(inputs.msg)"
       ],
       "class": "CommandLineTool",
       "id": "#echo",
       "inputs": [
         {
           "id": "msg",
-          "type": {
-            "items": "string",
-            "type": "array"
-          }
+          "type": "string"
         }
       ],
       "outputs": [
         {
           "id": "out",
           "outputBinding": {
-            "glob": "msg.txt"
+            "glob": "blub.txt"
           },
           "type": "File"
         }
@@ -29,26 +27,16 @@
         "InlineJavascriptRequirement": {
         }
       },
-      "stdout": "msg.txt"
+      "stdout": "blub.txt"
     },
     {
       "class": "Workflow",
       "id": "#main",
       "inputs": [
-        {
-          "default": "hello",
-          "id": "v1",
-          "type": "string"
-        },
-        {
-          "default": "world",
-          "id": "v2",
-          "type": "string"
-        }
       ],
       "outputs": [
         {
-          "id": "echo_out",
+          "id": "e",
           "outputSource": "echo/out",
           "type": "File"
         }
@@ -70,11 +58,7 @@
           "id": "echo",
           "in": {
             "msg": {
-              "linkMerge": "merge_flattened",
-              "source": [
-                "v1",
-                "v2"
-              ]
+              "default": "hello world"
             }
           },
           "out": [

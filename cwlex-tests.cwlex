@@ -8,6 +8,7 @@ def workflow main(
    [Directory("tests/req"), "req.cwlex", File("tests/req/req.cwl")],
    [Directory("tests/site"), "cwlsite.cwlex", File("tests/site/cwlsite.cwl")],
    [Directory("tests/linkmerge"), "linkmerge.cwlex", File("tests/linkmerge/linkmerge.cwl")],
+   [Directory("tests/assign"), "assign.cwlex", File("tests/assign/assign.cwl")],
    [Directory("tests/examples"), "reverse.cwlex", File("tests/examples/reverse.cwl")],
    [Directory("tests/examples"), "ex2.cwlex", File("tests/examples/ex2.cwl")],
    [Directory("tests/examples"), "ex3.cwlex", File("tests/examples/ex3.cwl")],
@@ -25,9 +26,9 @@ def workflow main(
  ]
 ) {
   scatter cases do run workflow() {
-    cwlex(cases, inpdir=$(inputs.cases[0]), inpfile=$(inputs.cases[1]))
-    run tool(cases, converted) {
-      diff -u $(inputs.converted) $(inputs.cases[2]) > $(inputs.cases[2].basename+".diff")
+    converted = cwlex(cases, inpdir=$(inputs.cases[0]), inpfile=$(inputs.cases[1]))
+    run tool(cases=cases, converted) {
+      diff -u $(inputs.cases[2]) $(inputs.converted) > $(inputs.cases[2].basename+".diff")
       return File(inputs.cases[2].basename+".diff") as results
     }
     return results

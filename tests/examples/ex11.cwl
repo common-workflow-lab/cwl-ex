@@ -34,7 +34,8 @@
       "outputs": [
         {
           "id": "q",
-          "outputSource": "addone/q"
+          "outputSource": "addone/out",
+          "type": "int"
         }
       ],
       "requirements": {
@@ -58,7 +59,7 @@
             }
           },
           "out": [
-            "q"
+            "out"
           ],
           "run": "#addone"
         }

@@ -222,11 +222,11 @@ def workflow main(msg string) {
 def tool echo(msg string[]) {
   echo > msg.txt
   ? for each in newline
-  return File("msg.txt") as out
+  return File("msg.txt")
 }
 
 def workflow main(v1="hello", v2="world") {
-  echo(msg=merge_flattened(v1, v2))
+  echo_out = echo(msg=merge_flattened(v1, v2))
 }
 ```
 
