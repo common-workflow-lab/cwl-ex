@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 const cwlexConverter = require('./cwlex-convert');
-var stringify = require('json-stable-stringify');
+const yaml = require('js-yaml');
 
 var fs = require('fs');
 
@@ -15,4 +15,4 @@ var input = fs.readFileSync(infile, 'utf8');
 var graph = cwlexConverter.convert(input, infile);
 
 console.log("#!/usr/bin/env cwl-runner");
-console.log(stringify(graph, { space: 2 }));
+console.log(yaml.safeDump(graph, {sortKeys: true}));
