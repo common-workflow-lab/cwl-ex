@@ -10,11 +10,21 @@ Design principals:
 * Useful default behaviors when not specified
 * Be fun to use
 
-Note!  Although cwl-ex tool already offers a lot of functionality, the
-error reporting still needs a lot of work.  If you are trying to use
-it and running into problems, please file an issue.
+# Quickstart using Docker
 
-# Installation:
+Build a self-contained script (no imports)
+
+```
+cwl-runner cwlex.cwl --inp myscript.cwlex
+```
+
+Build script with imports:
+
+```
+cwl-runner cwlex.cwl --inpdir . --inpfile myscript.cwlex
+```
+
+# Installing
 
 ```
 npm install cwl-ex
@@ -159,7 +169,20 @@ $include: ex14.cwlex
 Generate the parser (requires antlr4):
 
 ```
-$ cwl-runner antlr.cwl
+$ cd src && cwl-runner antlr.cwl
+```
+
+Run local code in Docker
+```
+cwl-runner cwlex.cwl --inp src/cwlex-dev.cwlex
+cwl-runner cwlex-dev.cwl --inp myscript.cwlex
+```
+
+Run tests:
+
+```
+$ cwl-runner cwlex.cwl --inpdir . --inpfile cwlex-tests.cwlex
+$ cwl-runner cwlex-tests.cwl
 ```
 
 Install dependencies (requires node.js and npm):
@@ -168,11 +191,8 @@ Install dependencies (requires node.js and npm):
 $ npm install
 ```
 
-Run tests:
-
+Generate Docker image
 ```
-$ ./cwlex.js cwlex-tests.cwlex > cwlex-tests.cwl
-$ cwl-runner cwlex-tests.cwl
+npm pack
+docker build -f cwlex.Dockerfile .
 ```
-
-TODO: Create Docker image with antlr4, nodejs and dependencies.

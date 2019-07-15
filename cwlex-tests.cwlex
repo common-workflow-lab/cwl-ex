@@ -1,4 +1,4 @@
-import "cwlex.cwlex" as cwlex
+import "src/cwlex.cwlex" as cwlex
 
 def workflow main(
  cases = [
