@@ -2,12 +2,11 @@
   "name": "cwl-ex",
   "version": "1.0.0",
   "description": "CWL experimental grammar",
-  "main": "cwlex-convert.js",
+  "main": "src/cwlex-convert.js",
   "directories": {
     "test": "tests"
   },
   "scripts": {
-    "test": "./cwlex-tests.js"
   },
   "repository": {
     "type": "git",
@@ -24,6 +23,6 @@
     "js-yaml": "^3.13.1"
   },
   "bin": {
-    "cwlex": "./cwlex.js"
+    "cwlex": "src/cwlex.js"
   }
 }
