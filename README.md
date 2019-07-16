@@ -12,25 +12,37 @@ Design principals:
 
 # Quickstart using Docker
 
-Build a self-contained script (no imports)
+Requires a [CWL implementation](https://www.commonwl.org/#Implementations).
+
+Pulls the `commonworkflowlanguage/cwlex` Docker image.
+
+Convert a self-contained (no imports) cwlex script to CWL:
 
 ```
-cwl-runner cwlex.cwl --inp myscript.cwlex
+$ cwl-runner cwlex.cwl --inp myscript.cwlex
 ```
 
-Build script with imports:
+Convert a cwlex script with imports to CWL:
 
 ```
-cwl-runner cwlex.cwl --inpdir . --inpfile myscript.cwlex
+$ cwl-runner cwlex.cwl --inpdir . --inpfile myscript.cwlex
 ```
 
-# Installing
+The resulting script can be run with any [CWL implementation](https://www.commonwl.org/#Implementations):
 
 ```
-npm install cwl-ex
+$ cwl-runner myscript.cwl
 ```
 
-# Usage
+# Installing & Usage
+
+Easy install from npm.  Requires node.js.
+
+```
+$ npm install cwl-ex
+```
+
+Installs executable entry point `cwlex` in the npm `bin` directory.
 
 ```
 $ cwlex myscript.cwlex > myscript.cwl
@@ -242,16 +254,10 @@ def workflow main(v1="hello", v2="world") {
 
 # Developing
 
-Generate the parser (requires antlr4):
+Regenerate the parser (requires antlr4):
 
 ```
 $ cd src && cwl-runner antlr.cwl
-```
-
-Run local code in Docker
-```
-cwl-runner cwlex.cwl --inp src/cwlex-dev.cwlex
-cwl-runner cwlex-dev.cwl --inp myscript.cwlex
 ```
 
 Run tests:
@@ -267,8 +273,19 @@ Install dependencies (requires node.js and npm):
 $ npm install
 ```
 
-Generate Docker image
+Build npm package:
+
 ```
-npm pack
-docker build -f cwlex.Dockerfile .
+$ npm pack
+```
+
+Install local npm package into a Docker image.
+```
+$ docker build -f cwlex.Dockerfile -t commonworkflowlanguage/cwlex .
+```
+
+Update README.md
+```
+$ cwl-runner cwlex.cwl --inp makereadme.cwlex
+$ cwl-runner makereadme.cwl
 ```
