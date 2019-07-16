@@ -557,7 +557,7 @@ CwlExListener.prototype.exitCall = function(ctx) {
     if (find !== undefined && ctx.stepinputs().stepinput().length == 1
        && find.id != inkeys[0]) {
         stepin[find.id] = stepin[inkeys[0]];
-        stepin[inkeys[0]] = undefined;
+        delete stepin[inkeys[0]];
     }
 }
 
