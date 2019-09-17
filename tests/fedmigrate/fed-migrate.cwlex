@@ -1,0 +1,37 @@
+def workflow main(
+  arvados_api_hosts string[],
+  arvados_cluster_ids string[],
+  superuser_tokens string[],
+  arvbox_containers string[]
+) {
+
+  logincluster = run expr (arvados_cluster_ids) string (inputs.arvados_cluster_ids[0])
+
+  scatter arvbox_containers as container, arvados_cluster_ids as cluster_id do
+    run workflow(logincluster)
+  {
+    requirements {
+      EnvVarRequirement {
+        envDef: {
+          ARVBOX_CONTAINER: "$(inputs.container)"
+        }
+      }
+    }
+
+    run tool(container, cluster_id, logincluster, set_login = File("set_login.py")) {
+sh <<<
+set -x
+docker cp $(inputs.container):/var/lib/arvados/cluster_config.yml.override .
+chmod +w cluster_config.yml.override
+python $(inputs.set_login.path) cluster_config.yml.override $(inputs.cluster_id) $(inputs.logincluster)
+docker cp cluster_config.yml.override $(inputs.container):/var/lib/arvados
+>>>
+      return container as c
+    }
+    run tool(container, c) {
+      arvbox hotreset
+      return c as d
+    }
+
+  }
+}

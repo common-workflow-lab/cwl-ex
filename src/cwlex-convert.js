@@ -570,6 +570,9 @@ CwlExListener.prototype.exitScatter = function(ctx) {
     var step = this.workTop("step");
     step.scatter = [];
     var scatterInputs = this.workTop("scatterinputs");
+    if (sa.length > 1) {
+        step.scatterMethod = "dotproduct";
+    }
     sa.map((m) => {
         var name = m[0];
         var symbol = m[1];
@@ -627,7 +630,12 @@ CwlExListener.prototype.exitStepinputSourceOrValue = function(ctx) {
             this.workTop("embedded")["inputs"].push({id: this.workTop("linkname"), type: bind.type});
         }
     } else if (ctx.const_value()) {
-        link["default"] = this.popWork("const_value")["default"];
+        var cv = this.popWork("const_value");
+        link["default"] = cv["default"];
+        if (this.workTop("inline")) {
+            this.workTop("embedded").inputs.push({id: this.workTop("linkname"),
+                                                  type: cv.type});
+        }
     } else if (ctx.jsexpr()) {
         link["valueFrom"] = '$'+ctx.jsexpr().getText();
     } else if (ctx.jsblock()) {
@@ -768,8 +776,23 @@ CwlExListener.prototype.enterInlineworkflowbody = function(ctx) {
     var outerBindings = this.workTop("bindings");
     var newbindings = {};
     var stepin = this.workTop("step")["in"];
+    var wfinputs = this.workTop("step")["run"]["inputs"];
     Object.keys(stepin).map((inp) => {
-        newbindings[inp] = {source: inp, type: outerBindings[stepin[inp].source].type};
+        var found = false;
+        wfinputs.map((m) => {
+            if (m["id"] == inp) {
+                found = m;
+            }
+        });
+        if (found == false) {
+            if (stepin[inp].source) {
+                newbindings[inp] = {source: inp, type: outerBindings[stepin[inp].source].type};
+            } else {
+                newbindings[inp] = {source: inp, type: "Any"};
+            }
+        } else {
+            newbindings[inp] = {source: inp, type: found.type};
+        }
     });
     this.pushWork("bindings", newbindings);
     this.pushWork("stepcount", 0);
@@ -896,6 +919,17 @@ var salad = (graph) => {
     return graph;
 };
 
+function updateLocation(graph, prefix) {
+    if (graph instanceof Array) {
+        graph.map((m) => updateLocation(m, prefix));
+    } else if (graph instanceof Object) {
+        if (graph.location !== undefined) {
+            graph.location = prefix + "/" + graph.location;
+        }
+        Object.keys(graph).map((m) => updateLocation(graph[m], prefix));
+    }
+}
+
 CwlExListener.prototype.enterImport_decl = function(ctx) {
     var fs = require('fs');
     var id = extractString(ctx);
@@ -912,6 +946,12 @@ CwlExListener.prototype.enterImport_decl = function(ctx) {
         graph = salad(yaml.safeLoad(input));
     } catch (error) {
         graph = convert(input);
+    }
+
+    components = extractString(ctx).split('/').slice(0, -1);
+    if (components.length > 0) {
+        var prefix = components.join("/");
+        updateLocation(graph, prefix);
     }
 
     graph["id"] = "#"+ctx.name().getText();

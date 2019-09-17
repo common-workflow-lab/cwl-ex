@@ -15,4 +15,4 @@ var input = fs.readFileSync(infile, 'utf8');
 var graph = cwlexConverter.convert(input, infile);
 
 console.log("#!/usr/bin/env cwl-runner");
-console.log(yaml.safeDump(graph, {sortKeys: true}));
+console.log(yaml.safeDump(graph, {sortKeys: true, noRefs: true}));

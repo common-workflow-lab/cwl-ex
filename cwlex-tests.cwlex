@@ -1,4 +1,4 @@
-import "src/cwlex.cwlex" as cwlex
+import "src/cwlex-dev.cwlex" as cwlex
 
 def workflow main(
  cases = [
@@ -22,7 +22,8 @@ def workflow main(
    [Directory("tests/examples"), "ex11.cwlex", File("tests/examples/ex11.cwl")],
    [Directory("tests/examples"), "ex12.cwlex", File("tests/examples/ex12.cwl")],
    [Directory("tests/examples"), "ex13.cwlex", File("tests/examples/ex13.cwl")],
-   [Directory("tests/examples"), "ex14.cwlex", File("tests/examples/ex14.cwl")]
+   [Directory("tests/examples"), "ex14.cwlex", File("tests/examples/ex14.cwl")],
+   [Directory("tests/fedmigrate"), "fed-migrate.cwlex", File("tests/fedmigrate/fed-migrate.cwl")]
  ]
 ) {
   scatter cases do run workflow() {
