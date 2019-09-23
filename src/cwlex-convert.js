@@ -351,6 +351,9 @@ CwlExListener.prototype.enterOutput_assignment = function(ctx) {
                 out.type = inp.type;
             }
         });
+        if (out.type === undefined) {
+            this.throwError(ctx, "Unknown input parameter for passthrough: '"+oa.symbol().getText()+"'");
+        }
         ob["outputEval"] = "$(inputs." + oa.symbol().getText() + ")";
     }
 };
@@ -365,9 +368,13 @@ CwlExListener.prototype.enterCommand = function(ctx) {
     ctx.argument().map((arg) => {
         top["arguments"].push(extractString(arg, true));
     });
-    if (ctx.redirect()) {
-        top["stdout"] = extractString(ctx.redirect().argument());
-    }
+    ctx.redirect().map(r => {
+        if (r.getText()[0] == '>') {
+            top["stdout"] = extractString(r.argument());
+        } else {
+            top["stdin"] = extractString(r.argument());
+        }
+    });
     if (ctx.scriptbody()) {
         top["requirements"].InitialWorkDirRequirement = {
             listing: [{
@@ -638,8 +645,16 @@ CwlExListener.prototype.exitStepinputSourceOrValue = function(ctx) {
         }
     } else if (ctx.jsexpr()) {
         link["valueFrom"] = '$'+ctx.jsexpr().getText();
+        if (this.workTop("inline")) {
+            this.workTop("embedded").inputs.push({id: this.workTop("linkname"),
+                                                  type: 'Any'});
+        }
     } else if (ctx.jsblock()) {
         link["valueFrom"] = '$'+ctx.jsblock().getText();
+        if (this.workTop("inline")) {
+            this.workTop("embedded").inputs.push({id: this.workTop("linkname"),
+                                                  type: 'Any'});
+        }
     } else if (ctx.linkmerge()) {
         var items = this.linkMergeSource(link, ctx);
 
@@ -898,6 +913,7 @@ var convert = (input, baseurl) => {
         r = {"$graph": values};
     }
     r["cwlVersion"] = "v1.0";
+
     return r;
 };
 

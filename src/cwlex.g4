@@ -62,16 +62,16 @@ scriptbody : OPENSCRIPT scriptlines CLOSESCRIPT ;
 
 freetext : DOLLAR | OPENPAREN | CLOSEPAREN | OPENBRACE | CLOSEBRACE
 	    | OPENBRACKET | CLOSEBRACKET
-            | COLON | COMMA | EQ | QUES | LESSER | COMMENT | OPENSCRIPT
-	    | SQSTRING | DQSTRING | DQSTRING | FLOAT | INTEGER | keyword | NOTWS ;
+            | COLON | COMMA | EQ | QUES | COMMENT | OPENSCRIPT
+	    | SQSTRING | DQSTRING | BQSTRING | FLOAT | INTEGER | keyword | NOTWS ;
 
 line : (freetext | SPACE | GREATER)* NEWLINE ;
 
 argument : freetext+;
 
-redirect : GREATER SPACE* argument ;
+redirect : (GREATER|LESSER) SPACE* argument ;
 
-command : SPACE* argument (SPACE+ argument)* SPACE* redirect? SPACE* (scriptbody | NEWLINE) (optional_arg | ws)* ;
+command : SPACE* argument (SPACE+ argument)* (SPACE* redirect)* SPACE* (scriptbody | NEWLINE) (optional_arg | ws)* ;
 
 const_string : SQSTRING | DQSTRING ;
 
